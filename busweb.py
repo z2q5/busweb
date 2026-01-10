@@ -326,9 +326,9 @@ translations = {
         "poor": "ضعيف",
         
         # الفوتر
-        "footer": "🚍 نظام الباص الذكي - الإصدار 2.0",
+        "footer": "🚍 muneerago - الإصدار 2.0",
         "rights": "© 2025 جميع الحقوق محفوظة",
-        "team": "تم التطوير بواسطة: إياد مصطفى | التصميم: muneerago | الإشراف: قسم النادي البيئي",
+        "team": "تم التطوير بواسطة: إياد مصطفى | التصميم: إياد مصطفى | الإشراف: قسم النادي البيئي",
         
         # مميزات النظام
         "feature1": "تسجيل حضور ذكي",
@@ -524,9 +524,9 @@ translations = {
         "poor": "Poor",
         
         # Footer
-        "footer": "🚍 Smart Bus System - Version 2.0",
+        "footer": "🚍 muneerago - Version 2.0",
         "rights": "© 2025 All Rights Reserved",
-        "team": "Developed by: Eyad Mustafa | Design: muneerago | Supervision: Environmental Club",
+        "team": "Developed by: Eyad Mustafa | Design: Eyad Mustafa | Supervision: Environmental Club",
         
         # Features
         "feature1": "Smart Attendance",
