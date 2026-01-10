@@ -58,6 +58,8 @@ if "chat_messages" not in st.session_state:
     st.session_state.chat_messages = []
 if "sync_pending" not in st.session_state:
     st.session_state.sync_pending = False
+if "show_rating_dialog" not in st.session_state:
+    st.session_state.show_rating_dialog = False
 
 # ===== وظائف حفظ البيانات =====
 def save_data():
@@ -297,9 +299,9 @@ translations = {
         "reset_success": "تم إعادة تعيين حالتك",
         "login_success": "تم الدخول بنجاح",
         "login_error": "كلمة مرور غير صحيحة",
-        "data_reset_success": "تم إعادة تعيين البيانات",
-        "backup_success": "تم إنشاء نسخة احتياطية",
-        "password_updated": "تم تحديث كلمة المرور",
+        "data_reset_success": "تم إعادة تعيين البيانات بنجاح",
+        "backup_success": "تم إنشاء نسخة احتياطية بنجاح",
+        "password_updated": "تم تحديث كلمة المرور بنجاح",
         
         # الإعدادات
         "theme_light": "☀️",
@@ -326,7 +328,7 @@ translations = {
         # الفوتر
         "footer": "🚍 نظام الباص الذكي - الإصدار 2.0",
         "rights": "© 2025 جميع الحقوق محفوظة",
-        "team": "تم التطوير بواسطة: إياد مصطفى | التصميم: ايمن جلال | الإشراف: قسم النادي البيئي",
+        "team": "تم التطوير بواسطة: إياد مصطفى | التصميم: muneerago | الإشراف: قسم النادي البيئي",
         
         # مميزات النظام
         "feature1": "تسجيل حضور ذكي",
@@ -524,7 +526,7 @@ translations = {
         # Footer
         "footer": "🚍 Smart Bus System - Version 2.0",
         "rights": "© 2025 All Rights Reserved",
-        "team": "Developed by: Eyad Mustafa | Design: Ayman Galal | Supervision: Environmental Club",
+        "team": "Developed by: Eyad Mustafa | Design: muneerago | Supervision: Environmental Club",
         
         # Features
         "feature1": "Smart Attendance",
@@ -759,6 +761,224 @@ def get_driver_contact(bus_number):
         "3": {"name": "خالد سعيد", "phone": "0503333333"}
     }
     return drivers.get(bus_number, {"name": "غير محدد", "phone": "غير محدد"})
+
+# ===== وظائف جديدة للأزرار =====
+def reset_system_data():
+    """إعادة تعيين بيانات النظام"""
+    try:
+        # حفظ نسخة احتياطية قبل الإعادة
+        backup_file = DATA_DIR / f"backup_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pkl"
+        with open(backup_file, "wb") as f:
+            backup_data = {
+                "students": st.session_state.students_df.to_dict() if 'students_df' in st.session_state else {},
+                "attendance": st.session_state.attendance_df.to_dict() if 'attendance_df' in st.session_state else {},
+                "ratings": st.session_state.ratings_df.to_dict() if 'ratings_df' in st.session_state else {}
+            }
+            pickle.dump(backup_data, f)
+        
+        # إعادة تعيين البيانات
+        initialize_data()
+        
+        # إعادة تعيين كلمات المرور
+        st.session_state.bus_passwords = {"1": "1111", "2": "2222", "3": "3333"}
+        st.session_state.admin_password = "admin123"
+        
+        save_data()
+        return True, "تم إعادة تعيين البيانات بنجاح!"
+    except Exception as e:
+        return False, f"خطأ في إعادة التعيين: {str(e)}"
+
+def create_backup():
+    """إنشاء نسخة احتياطية"""
+    try:
+        backup_dir = DATA_DIR / "backups"
+        backup_dir.mkdir(exist_ok=True)
+        
+        backup_file = backup_dir / f"backup_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+        
+        # حفظ جميع البيانات في ملف واحد
+        backup_data = {
+            "timestamp": datetime.datetime.now().isoformat(),
+            "students": st.session_state.students_df.to_dict() if 'students_df' in st.session_state else {},
+            "attendance": st.session_state.attendance_df.to_dict() if 'attendance_df' in st.session_state else {},
+            "ratings": st.session_state.ratings_df.to_dict() if 'ratings_df' in st.session_state else {},
+            "settings": {
+                "bus_passwords": st.session_state.bus_passwords,
+                "admin_password": st.session_state.admin_password,
+                "theme": st.session_state.theme,
+                "lang": st.session_state.lang
+            }
+        }
+        
+        with open(backup_file, "wb") as f:
+            pickle.dump(backup_data, f)
+        
+        # حساب عدد النسخ الاحتياطية
+        backup_count = len(list(backup_dir.glob("*.zip")))
+        
+        return True, f"تم إنشاء نسخة احتياطية بنجاح! (إجمالي النسخ: {backup_count})"
+    except Exception as e:
+        return False, f"خطأ في إنشاء النسخة الاحتياطية: {str(e)}"
+
+def update_admin_password(new_password):
+    """تحديث كلمة مرور الإدارة"""
+    try:
+        if len(new_password) < 4:
+            return False, "كلمة المرور يجب أن تكون 4 أحرف على الأقل"
+        
+        st.session_state.admin_password = new_password
+        save_data()
+        return True, "تم تحديث كلمة مرور الإدارة بنجاح!"
+    except Exception as e:
+        return False, f"خطأ في تحديث كلمة المرور: {str(e)}"
+
+def update_bus_password(bus_number, new_password):
+    """تحديث كلمة مرور الباص"""
+    try:
+        if len(new_password) < 4:
+            return False, "كلمة المرور يجب أن تكون 4 أحرف على الأقل"
+        
+        st.session_state.bus_passwords[bus_number] = new_password
+        save_data()
+        return True, f"تم تحديث كلمة مرور الباص {bus_number} بنجاح!"
+    except Exception as e:
+        return False, f"خطأ في تحديث كلمة المرور: {str(e)}"
+
+def show_rating_dialog():
+    """عرض نافذة التقييم الحديثة"""
+    if st.session_state.show_rating_dialog:
+        # نافذة التقييم
+        st.markdown("""
+        <style>
+        .rating-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .rating-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            width: 400px;
+            max-width: 90%;
+            color: white;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .star-rating {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 1.5rem 0;
+        }
+        
+        .star {
+            font-size: 3rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .star:hover {
+            transform: scale(1.2);
+        }
+        
+        .rating-description {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # محاكاة نافذة التقييم باستخدام st.container
+        with st.container():
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                with st.expander("⭐ تقييم النظام", expanded=True):
+                    st.markdown("### ⭐ كيف تقيم تجربتك مع النظام؟")
+                    
+                    # النجوم التفاعلية
+                    cols = st.columns(5)
+                    rating = 0
+                    
+                    with cols[0]:
+                        if st.button("★", key="star1", use_container_width=True):
+                            rating = 1
+                            st.session_state.selected_rating = 1
+                    with cols[1]:
+                        if st.button("★", key="star2", use_container_width=True):
+                            rating = 2
+                            st.session_state.selected_rating = 2
+                    with cols[2]:
+                        if st.button("★", key="star3", use_container_width=True):
+                            rating = 3
+                            st.session_state.selected_rating = 3
+                    with cols[3]:
+                        if st.button("★", key="star4", use_container_width=True):
+                            rating = 4
+                            st.session_state.selected_rating = 4
+                    with cols[4]:
+                        if st.button("★", key="star5", use_container_width=True):
+                            rating = 5
+                            st.session_state.selected_rating = 5
+                    
+                    # عرض النجوم المختارة
+                    if st.session_state.selected_rating > 0:
+                        stars_display = "★" * st.session_state.selected_rating + "☆" * (5 - st.session_state.selected_rating)
+                        st.markdown(f"**التقييم:** {stars_display}")
+                        
+                        # أوصاف التقييمات
+                        descriptions = {
+                            1: "❌ ضعيف - يحتاج إلى تحسين كبير",
+                            2: "⚠️ مقبول - يحتاج إلى بعض التحسينات",
+                            3: "✅ جيد - نظام مقبول",
+                            4: "👍 جيد جداً - نظام ممتاز",
+                            5: "🎉 ممتاز - نظام رائع!"
+                        }
+                        
+                        if st.session_state.selected_rating in descriptions:
+                            st.info(descriptions[st.session_state.selected_rating])
+                    
+                    # التعليق
+                    comment = st.text_area("💬 تعليقك (اختياري):", 
+                                         placeholder="شاركنا رأيك لتطوير النظام...",
+                                         height=100,
+                                         key="modal_comment")
+                    
+                    # أزرار الإرسال والإغلاق
+                    col_btn1, col_btn2 = st.columns(2)
+                    with col_btn1:
+                        if st.button("🚀 إرسال التقييم", use_container_width=True, key="submit_rating_modal"):
+                            if st.session_state.selected_rating > 0:
+                                add_rating(st.session_state.selected_rating, comment)
+                                st.success("🎉 شكراً لتقييمك! تم حفظ تقييمك بنجاح.")
+                                st.session_state.show_rating_dialog = False
+                                st.session_state.selected_rating = 0
+                                time.sleep(1)
+                                st.rerun()
+                            else:
+                                st.warning("⚠️ يرجى اختيار تقييم أولاً")
+                    
+                    with col_btn2:
+                        if st.button("❌ إغلاق", use_container_width=True, key="close_rating_modal"):
+                            st.session_state.show_rating_dialog = False
+                            st.session_state.selected_rating = 0
+                            st.rerun()
 
 # ===== المساعد الذكي البسيط =====
 def smart_ai_assistant():
@@ -1082,6 +1302,59 @@ def apply_enhanced_styles():
         .stTabs [aria-selected="true"] {
             background-color: rgba(102, 126, 234, 0.2);
         }
+        
+        /* تصميم زر التقييم الجديد */
+        .rating-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+        
+        .rating-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
+            background: linear-gradient(135deg, #f59e0b 0%, #fcd34d 100%);
+        }
+        
+        /* تصميم النجوم في التقييم */
+        .star-container {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .star-btn {
+            font-size: 2.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #e5e7eb;
+        }
+        
+        .star-btn:hover {
+            transform: scale(1.2);
+            color: #fbbf24;
+        }
+        
+        .star-btn.selected {
+            color: #f59e0b;
+            transform: scale(1.1);
+        }
         </style>
         """, unsafe_allow_html=True)
     else:
@@ -1215,14 +1488,97 @@ def apply_enhanced_styles():
             background-color: #667eea;
             color: white;
         }
+        
+        /* تصميم زر التقييم الجديد */
+        .rating-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+        
+        .rating-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
+            background: linear-gradient(135deg, #f59e0b 0%, #fcd34d 100%);
+        }
+        
+        /* تصميم النجوم في التقييم */
+        .star-container {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .star-btn {
+            font-size: 2.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #d1d5db;
+        }
+        
+        .star-btn:hover {
+            transform: scale(1.2);
+            color: #fbbf24;
+        }
+        
+        .star-btn.selected {
+            color: #f59e0b;
+            transform: scale(1.1);
+        }
         </style>
         """, unsafe_allow_html=True)
 
 apply_enhanced_styles()
 
+# ===== زر التقييم العائم =====
+def show_floating_rating_button():
+    """عرض زر التقييم العائم"""
+    st.markdown("""
+    <style>
+    /* زر التقييم العائم */
+    .floating-rating-btn {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 999;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    if st.session_state.page != "about":  # لا نعرضه في صفحة حول النظام
+        col1, col2, col3 = st.columns([3, 1, 3])
+        with col2:
+            if st.button("⭐ تقييم النظام", key="floating_rating_btn", 
+                        use_container_width=True, 
+                        help="انقر لتقييم تجربتك مع النظام"):
+                st.session_state.show_rating_dialog = True
+                st.rerun()
+
 # ===== الواجهة الرئيسية المحسنة =====
 def main():
     """الواجهة الرئيسية للتطبيق"""
+    
+    # عرض نافذة التقييم إذا كانت مفتوحة
+    show_rating_dialog()
+    
+    # عرض زر التقييم العائم
+    show_floating_rating_button()
     
     # الهيدر الرئيسي
     col1, col2, col3 = st.columns([1, 3, 1])
@@ -1836,34 +2192,211 @@ def show_admin_page():
             </div>
             """, unsafe_allow_html=True)
         
-        # إدارة الطلاب
-        st.subheader("👥 إدارة الطلاب")
+        # تبويبات الإدارة
+        tab1, tab2, tab3, tab4 = st.tabs(["👥 إدارة الطلاب", "🔧 إجراءات النظام", "🔐 كلمات المرور", "📊 التقارير"])
         
-        # عرض قائمة الطلاب
-        if not st.session_state.students_df.empty:
-            st.dataframe(st.session_state.students_df, use_container_width=True)
-        else:
-            st.info("لا يوجد طلاب مسجلين في النظام")
+        with tab1:
+            # إدارة الطلاب
+            st.subheader("👥 إدارة الطلاب")
+            
+            # عرض قائمة الطلاب
+            if not st.session_state.students_df.empty:
+                st.dataframe(st.session_state.students_df, use_container_width=True)
+            else:
+                st.info("لا يوجد طلاب مسجلين في النظام")
+            
+            # إضافة طالب جديد
+            st.subheader("➕ إضافة طالب جديد")
+            with st.form("add_student_form"):
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    new_id = st.text_input("رقم الوزارة", key="new_student_id")
+                    new_name = st.text_input("اسم الطالب", key="new_student_name")
+                    new_grade = st.selectbox("الصف", ["10-A", "10-B", "9-A", "9-B", "8-A", "8-B", "7-A", "7-B", "6-A", "6-B"], key="new_student_grade")
+                
+                with col2:
+                    new_bus = st.selectbox("الباص", ["1", "2", "3"], key="new_student_bus")
+                    new_phone = st.text_input("هاتف ولي الأمر", key="new_student_phone")
+                
+                if st.form_submit_button("➕ إضافة الطالب", use_container_width=True):
+                    if new_id and new_name and new_grade and new_bus and new_phone:
+                        success, message = add_new_student(new_id, new_name, new_grade, new_bus, new_phone)
+                        if success:
+                            st.success("✅ تم إضافة الطالب بنجاح!")
+                            st.rerun()
+                        else:
+                            if message == "student_exists":
+                                st.error("❌ رقم الوزارة موجود مسبقاً!")
+                            else:
+                                st.error(f"❌ خطأ: {message}")
+                    else:
+                        st.error("❌ يرجى ملء جميع الحقول")
         
-        # إجراءات النظام
-        st.subheader("⚙️ إجراءات النظام")
+        with tab2:
+            # إجراءات النظام
+            st.subheader("⚙️ إجراءات النظام")
+            
+            col_act1, col_act2, col_act3 = st.columns(3)
+            
+            with col_act1:
+                st.markdown("### 🔄 إعادة تعيين البيانات")
+                st.info("هذا الإجراء سيعيد جميع البيانات إلى الحالة الافتراضية")
+                if st.button("🔄 إعادة تعيين كافة البيانات", use_container_width=True, key="reset_all_data"):
+                    with st.spinner("جاري إعادة تعيين البيانات..."):
+                        success, message = reset_system_data()
+                        if success:
+                            st.success(f"✅ {message}")
+                            st.rerun()
+                        else:
+                            st.error(f"❌ {message}")
+            
+            with col_act2:
+                st.markdown("### 📥 نسخة احتياطية")
+                st.info("إنشاء نسخة احتياطية من جميع بيانات النظام")
+                if st.button("💾 إنشاء نسخة احتياطية", use_container_width=True, key="create_backup_btn"):
+                    with st.spinner("جاري إنشاء النسخة الاحتياطية..."):
+                        success, message = create_backup()
+                        if success:
+                            st.success(f"✅ {message}")
+                        else:
+                            st.error(f"❌ {message}")
+            
+            with col_act3:
+                st.markdown("### 📤 تصدير البيانات")
+                st.info("تصدير بيانات النظام بصيغة CSV")
+                
+                if st.button("📄 تصدير بيانات الطلاب", use_container_width=True, key="export_students"):
+                    if not st.session_state.students_df.empty:
+                        csv = st.session_state.students_df.to_csv(index=False)
+                        st.download_button(
+                            label="⬇️ تحميل ملف CSV",
+                            data=csv,
+                            file_name=f"طلاب_{datetime.datetime.now().strftime('%Y%m%d')}.csv",
+                            mime="text/csv",
+                            key="download_students"
+                        )
+                
+                if st.button("📊 تصدير بيانات الحضور", use_container_width=True, key="export_attendance"):
+                    if not st.session_state.attendance_df.empty:
+                        csv = st.session_state.attendance_df.to_csv(index=False)
+                        st.download_button(
+                            label="⬇️ تحميل ملف CSV",
+                            data=csv,
+                            file_name=f"حضور_{datetime.datetime.now().strftime('%Y%m%d')}.csv",
+                            mime="text/csv",
+                            key="download_attendance"
+                        )
         
-        col_act1, col_act2, col_act3 = st.columns(3)
+        with tab3:
+            # إدارة كلمات المرور
+            st.subheader("🔐 إدارة كلمات المرور")
+            
+            col_pass1, col_pass2 = st.columns(2)
+            
+            with col_pass1:
+                st.markdown("### 🏫 كلمة مرور الإدارة")
+                current_admin_pass = st.text_input("كلمة المرور الحالية", 
+                                                 value=st.session_state.admin_password,
+                                                 disabled=True,
+                                                 key="current_admin_pass")
+                
+                new_admin_pass = st.text_input("كلمة المرور الجديدة", 
+                                             type="password",
+                                             placeholder="أدخل كلمة المرور الجديدة",
+                                             key="new_admin_pass")
+                
+                confirm_admin_pass = st.text_input("تأكيد كلمة المرور", 
+                                                 type="password",
+                                                 placeholder="أعد إدخال كلمة المرور",
+                                                 key="confirm_admin_pass")
+                
+                if st.button("💾 تحديث كلمة مرور الإدارة", use_container_width=True, key="update_admin_pass"):
+                    if new_admin_pass and confirm_admin_pass:
+                        if new_admin_pass == confirm_admin_pass:
+                            success, message = update_admin_password(new_admin_pass)
+                            if success:
+                                st.success(f"✅ {message}")
+                                st.rerun()
+                            else:
+                                st.error(f"❌ {message}")
+                        else:
+                            st.error("❌ كلمتا المرور غير متطابقتين")
+                    else:
+                        st.error("❌ يرجى ملء جميع الحقول")
+            
+            with col_pass2:
+                st.markdown("### 🚍 كلمات مرور الباصات")
+                
+                selected_bus = st.selectbox("اختر الباص", ["1", "2", "3"], key="select_bus_pass")
+                
+                current_bus_pass = st.text_input("كلمة المرور الحالية", 
+                                               value=st.session_state.bus_passwords.get(selected_bus, ""),
+                                               disabled=True,
+                                               key=f"current_bus_pass_{selected_bus}")
+                
+                new_bus_pass = st.text_input("كلمة المرور الجديدة", 
+                                           type="password",
+                                           placeholder="أدخل كلمة المرور الجديدة",
+                                           key=f"new_bus_pass_{selected_bus}")
+                
+                confirm_bus_pass = st.text_input("تأكيد كلمة المرور", 
+                                               type="password",
+                                               placeholder="أعد إدخال كلمة المرور",
+                                               key=f"confirm_bus_pass_{selected_bus}")
+                
+                if st.button("💾 تحديث كلمة مرور الباص", use_container_width=True, key=f"update_bus_pass_{selected_bus}"):
+                    if new_bus_pass and confirm_bus_pass:
+                        if new_bus_pass == confirm_bus_pass:
+                            success, message = update_bus_password(selected_bus, new_bus_pass)
+                            if success:
+                                st.success(f"✅ {message}")
+                                st.rerun()
+                            else:
+                                st.error(f"❌ {message}")
+                        else:
+                            st.error("❌ كلمتا المرور غير متطابقتين")
+                    else:
+                        st.error("❌ يرجى ملء جميع الحقول")
         
-        with col_act1:
-            if st.button("🔄 إعادة تعيين البيانات", use_container_width=True):
-                initialize_data()
-                st.success("تم إعادة تعيين البيانات بنجاح")
-                st.rerun()
-        
-        with col_act2:
-            if st.button("📥 نسخة احتياطية", use_container_width=True):
-                save_data()
-                st.success("تم إنشاء نسخة احتياطية بنجاح")
-        
-        with col_act3:
-            if st.button("🔄 تحديث كلمات المرور", use_container_width=True):
-                st.info("استخدم النموذج أدناه لتغيير كلمات المرور")
+        with tab4:
+            # التقارير والإحصائيات
+            st.subheader("📊 التقارير والإحصائيات")
+            
+            # تقرير الحضور اليومي
+            today = datetime.datetime.now().strftime("%Y-%m-%d")
+            today_attendance = st.session_state.attendance_df[
+                st.session_state.attendance_df["date"] == today
+            ]
+            
+            if not today_attendance.empty:
+                col_report1, col_report2 = st.columns(2)
+                
+                with col_report1:
+                    st.markdown("### 📈 إحصائيات اليوم")
+                    
+                    coming_count = len(today_attendance[today_attendance["status"] == "قادم"])
+                    not_coming_count = len(today_attendance[today_attendance["status"] == "لن يحضر"])
+                    total_count = len(today_attendance)
+                    
+                    st.metric("✅ الحضور المؤكد", coming_count)
+                    st.metric("❌ عدم الحضور", not_coming_count)
+                    st.metric("👥 إجمالي المسجلين", total_count)
+                    
+                    # رسم بياني بسيط
+                    if total_count > 0:
+                        chart_data = pd.DataFrame({
+                            "الحالة": ["الحضور", "عدم الحضور"],
+                            "العدد": [coming_count, not_coming_count]
+                        })
+                        st.bar_chart(chart_data.set_index("الحالة"))
+                
+                with col_report2:
+                    st.markdown("### 📋 قائمة الحضور اليوم")
+                    st.dataframe(today_attendance[["name", "grade", "bus", "status", "time"]], 
+                               use_container_width=True)
+            else:
+                st.info("لا توجد بيانات حضور لهذا اليوم")
 
 def show_about_page():
     """صفحة حول النظام"""
@@ -1881,7 +2414,7 @@ def show_about_page():
     """, unsafe_allow_html=True)
     
     # تبويبات الصفحة
-    tab1, tab2, tab3 = st.tabs(["🎯 المميزات", "👥 فريق التطوير", "📧 التواصل"])
+    tab1, tab2, tab3, tab4 = st.tabs(["🎯 المميزات", "👥 فريق التطوير", "⭐ التقييم", "📧 التواصل"])
     
     with tab1:
         # مميزات النظام
@@ -1920,7 +2453,7 @@ def show_about_page():
             
             team_members = [
                 ("🛠️", t("developer"), "إياد مصطفى"),
-                ("🎨", t("designer"), "ايمن جلال"),
+                ("🎨", t("designer"), "muneerago"),
                 ("👨‍🏫", "المشرف", "قسم النادي البيئي")
             ]
             
@@ -1936,7 +2469,7 @@ def show_about_page():
                 """, unsafe_allow_html=True)
         
         with col2:
-            # معلومات الإصدار ونظام التقييم
+            # معلومات الإصدار
             st.subheader("📋 معلومات النظام")
             
             # معلومات الإصدار
@@ -1949,10 +2482,24 @@ def show_about_page():
             </div>
             """, unsafe_allow_html=True)
             
-            # نظام التقييم
-            show_rating_system_tab()
+            # إحصائيات النظام
+            avg_rating, total_ratings = get_average_rating()
+            total_students = len(st.session_state.students_df)
+            
+            st.markdown(f"""
+            <div class="metric-card">
+                <h4>📊 إحصائيات النظام</h4>
+                <p><strong>👥 عدد الطلاب:</strong> {total_students}</p>
+                <p><strong>⭐ متوسط التقييم:</strong> {avg_rating:.1f}/5</p>
+                <p><strong>📈 عدد التقييمات:</strong> {total_ratings}</p>
+            </div>
+            """, unsafe_allow_html=True)
     
     with tab3:
+        # نظام التقييم المحسن
+        show_rating_system_tab()
+    
+    with tab4:
         # المساعد الذكي والتواصل مع المطور
         col1, col2 = st.columns([1, 1])
         
@@ -1966,7 +2513,7 @@ def show_about_page():
 
 def show_rating_system_tab():
     """نظام التقييم في تبويب منفصل"""
-    st.subheader("⭐ نظام التقييم")
+    st.subheader("⭐ قيم تجربتك مع النظام")
     
     # إحصائيات التقييمات
     avg_rating, total_ratings = get_average_rating()
@@ -1977,67 +2524,101 @@ def show_rating_system_tab():
         st.markdown(f"""
         <div class="metric-card">
             <h4>📊 {t('average_rating')}</h4>
-            <h1 style="color: #f59e0b; text-align: center;">{avg_rating:.1f}/5</h1>
-            <div style="text-align: center; font-size: 1.5rem; margin: 0.5rem 0;">
-                {"⭐" * int(avg_rating) if avg_rating > 0 else ""}
+            <h1 style="color: #f59e0b; text-align: center; font-size: 3rem;">{avg_rating:.1f}<span style="font-size: 1.5rem;">/5</span></h1>
+            <div style="text-align: center; font-size: 2rem; margin: 0.5rem 0;">
+                {"⭐" * int(avg_rating) if avg_rating > 0 else ""}{"☆" * (5 - int(avg_rating)) if avg_rating < 5 else ""}
             </div>
+            <p style="opacity: 0.8; margin: 0;">من {total_ratings} تقييم</p>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <h4>📈 {t('total_ratings')}</h4>
-            <h2 style="color: #667eea; text-align: center;">{total_ratings}</h2>
-        </div>
-        """, unsafe_allow_html=True)
+        # أزرار النجوم التفاعلية
+        st.markdown("### 💬 كيف تقيم تجربتك؟")
+        
+        # أزرار النجوم
+        cols = st.columns(5)
+        rating_desc = ""
+        
+        # إنشاء أزرار النجوم
+        for i in range(5):
+            with cols[i]:
+                star_num = i + 1
+                if st.button("⭐", key=f"star_{star_num}", use_container_width=True):
+                    st.session_state.selected_rating = star_num
+                    st.rerun()
+        
+        # عرض النجوم المختارة
+        if st.session_state.selected_rating > 0:
+            stars = "⭐" * st.session_state.selected_rating + "☆" * (5 - st.session_state.selected_rating)
+            st.markdown(f"**التقييم المختار:** {stars}")
+            
+            # أوصاف التقييمات
+            descriptions = {
+                1: "❌ ضعيف - النظام يحتاج إلى تحسين كبير",
+                2: "⚠️ مقبول - يحتاج إلى بعض التحسينات",
+                3: "✅ جيد - نظام مقبول ويؤدي المطلوب",
+                4: "👍 جيد جداً - نظام ممتاز مع بعض النقاط البسيطة",
+                5: "🎉 ممتاز - نظام رائع ومتكامل!"
+            }
+            
+            if st.session_state.selected_rating in descriptions:
+                st.info(descriptions[st.session_state.selected_rating])
     
     # نموذج التقييم
     st.markdown("---")
-    st.subheader("💬 شاركنا رأيك")
     
-    rating = st.slider(
-        f"**{t('your_rating')}**",
-        1, 5, 5,
-        key="rating_slider_about"
-    )
-    
-    # عرض النجوم
-    stars = "⭐" * rating + "☆" * (5 - rating)
-    st.markdown(f"**{t('select_rating')}:** {stars}")
-    
-    # التعليق
-    comment = st.text_area(
-        f"**{t('your_comment')}**",
-        placeholder="اكتب تعليقك هنا... (اختياري)",
-        height=100,
-        key="rating_comment_about"
-    )
-    
-    if st.button(f"**🚀 {t('submit_rating')}**", use_container_width=True, key="submit_rating_about"):
-        add_rating(rating, comment)
-        st.success(t("rating_success"))
-        st.balloons()
-        st.rerun()
+    if st.session_state.selected_rating > 0:
+        st.subheader("💬 شاركنا رأيك")
+        
+        comment = st.text_area(
+            f"**{t('your_comment')}**",
+            placeholder="شاركنا تجربتك مع النظام... (اختياري)",
+            height=120,
+            key="rating_comment_about"
+        )
+        
+        col_btn1, col_btn2 = st.columns([1, 1])
+        
+        with col_btn1:
+            if st.button(f"**🚀 {t('submit_rating')}**", use_container_width=True, key="submit_rating_about"):
+                add_rating(st.session_state.selected_rating, comment)
+                st.success("🎉 شكراً جزيلاً لتقييمك! تم حفظ تقييمك بنجاح.")
+                st.balloons()
+                st.session_state.selected_rating = 0
+                time.sleep(2)
+                st.rerun()
+        
+        with col_btn2:
+            if st.button("**🔄 إعادة التقييم**", use_container_width=True, key="reset_rating_about"):
+                st.session_state.selected_rating = 0
+                st.rerun()
+    else:
+        st.info("⚠️ يرجى اختيار تقييمك بالنقر على النجوم أعلاه")
     
     # عرض آخر التقييمات
     if not st.session_state.ratings_df.empty:
         st.markdown("---")
         st.subheader("📝 آخر التقييمات")
-        latest_ratings = st.session_state.ratings_df.tail(3)
+        
+        # عرض آخر 5 تقييمات
+        latest_ratings = st.session_state.ratings_df.sort_values("timestamp", ascending=False).head(5)
+        
         for _, rating in latest_ratings.iterrows():
             stars = "⭐" * rating["rating"] + "☆" * (5 - rating["rating"])
+            timestamp = pd.to_datetime(rating["timestamp"]).strftime("%Y-%m-%d %H:%M")
+            
             st.markdown(f"""
             <div style='
-                background: rgba(255,255,255,0.1);
+                background: {'rgba(245, 158, 11, 0.1)' if rating["rating"] >= 4 else 'rgba(239, 68, 68, 0.1)' if rating["rating"] <= 2 else 'rgba(59, 130, 246, 0.1)'};
                 padding: 1rem;
                 border-radius: 10px;
                 margin: 0.5rem 0;
-                border-left: 4px solid #f59e0b;
+                border-left: 4px solid {'#10b981' if rating["rating"] >= 4 else '#ef4444' if rating["rating"] <= 2 else '#3b82f6'};
             '>
-                <div style="display: flex; justify-content: between; align-items: center;">
-                    <span style="font-size: 1.1rem;">{stars}</span>
-                    <small style="opacity: 0.7;">{rating['timestamp'].split()[0]}</small>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 1.2rem; font-weight: bold;">{stars}</span>
+                    <small style="opacity: 0.7;">{timestamp}</small>
                 </div>
                 {f"<p style='margin: 0.5rem 0 0 0; opacity: 0.8; font-style: italic;'>{rating['comment']}</p>" if pd.notna(rating['comment']) and rating['comment'].strip() else ""}
             </div>
