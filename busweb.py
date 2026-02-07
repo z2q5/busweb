@@ -58,25 +58,32 @@ if "chat_messages" not in st.session_state:
     st.session_state.chat_messages = []
 if "sync_pending" not in st.session_state:
     st.session_state.sync_pending = False
+if "student_search" not in st.session_state:
+    st.session_state.student_search = ""
+if "contact_submitted" not in st.session_state:
+    st.session_state.contact_submitted = False
 
 # ===== وظائف حفظ البيانات =====
 def save_data():
     """حفظ جميع البيانات في الملفات"""
     try:
         # حفظ بيانات الطلاب
-        if 'students_df' in st.session_state:
+        if 'students_df' in st.session_state and not st.session_state.students_df.empty:
+            students_dict = st.session_state.students_df.to_dict(orient='list')
             with open(DATA_DIR / "students.pkl", "wb") as f:
-                pickle.dump(st.session_state.students_df.to_dict(), f)
+                pickle.dump(students_dict, f)
         
         # حفظ بيانات الحضور
-        if 'attendance_df' in st.session_state:
+        if 'attendance_df' in st.session_state and not st.session_state.attendance_df.empty:
+            attendance_dict = st.session_state.attendance_df.to_dict(orient='list')
             with open(DATA_DIR / "attendance.pkl", "wb") as f:
-                pickle.dump(st.session_state.attendance_df.to_dict(), f)
+                pickle.dump(attendance_dict, f)
         
         # حفظ بيانات التقييمات
-        if 'ratings_df' in st.session_state:
+        if 'ratings_df' in st.session_state and not st.session_state.ratings_df.empty:
+            ratings_dict = st.session_state.ratings_df.to_dict(orient='list')
             with open(DATA_DIR / "ratings.pkl", "wb") as f:
-                pickle.dump(st.session_state.ratings_df.to_dict(), f)
+                pickle.dump(ratings_dict, f)
         
         # حفظ الإعدادات
         settings = {
@@ -90,8 +97,12 @@ def save_data():
         with open(DATA_DIR / "settings.json", "w", encoding="utf-8") as f:
             json.dump(settings, f, ensure_ascii=False)
             
+        st.session_state.last_save = datetime.datetime.now()
+        return True
+        
     except Exception as e:
         st.error(f"خطأ في حفظ البيانات: {e}")
+        return False
 
 def load_data():
     """تحميل البيانات المحفوظة"""
@@ -99,20 +110,20 @@ def load_data():
         # تحميل بيانات الطلاب
         if (DATA_DIR / "students.pkl").exists():
             with open(DATA_DIR / "students.pkl", "rb") as f:
-                students_data = pickle.load(f)
-                st.session_state.students_df = pd.DataFrame(students_data)
+                students_dict = pickle.load(f)
+                st.session_state.students_df = pd.DataFrame(students_dict)
         
         # تحميل بيانات الحضور
         if (DATA_DIR / "attendance.pkl").exists():
             with open(DATA_DIR / "attendance.pkl", "rb") as f:
-                attendance_data = pickle.load(f)
-                st.session_state.attendance_df = pd.DataFrame(attendance_data)
+                attendance_dict = pickle.load(f)
+                st.session_state.attendance_df = pd.DataFrame(attendance_dict)
         
         # تحميل بيانات التقييمات
         if (DATA_DIR / "ratings.pkl").exists():
             with open(DATA_DIR / "ratings.pkl", "rb") as f:
-                ratings_data = pickle.load(f)
-                st.session_state.ratings_df = pd.DataFrame(ratings_data)
+                ratings_dict = pickle.load(f)
+                st.session_state.ratings_df = pd.DataFrame(ratings_dict)
                 
         # تحميل الإعدادات
         if (DATA_DIR / "settings.json").exists():
@@ -125,12 +136,17 @@ def load_data():
                 st.session_state.font_size = settings.get("font_size", "افتراضي")
                 st.session_state.high_contrast = settings.get("high_contrast", False)
                 
+        st.session_state.data_loaded = True
+        return True
+        
     except Exception as e:
         st.error(f"خطأ في تحميل البيانات: {e}")
+        return False
 
 # ===== البيانات الافتراضية =====
 def initialize_data():
-    if 'students_df' not in st.session_state:
+    """تهيئة البيانات الافتراضية"""
+    if 'students_df' not in st.session_state or st.session_state.students_df.empty:
         students_data = [
             {"id": "1001", "name": "أحمد محمد", "grade": "10-A", "bus": "1", "parent_phone": "0501234567"},
             {"id": "1002", "name": "فاطمة علي", "grade": "9-B", "bus": "2", "parent_phone": "0507654321"},
@@ -143,18 +159,21 @@ def initialize_data():
         ]
         st.session_state.students_df = pd.DataFrame(students_data)
     
-    if 'attendance_df' not in st.session_state:
+    if 'attendance_df' not in st.session_state or st.session_state.attendance_df.empty:
         st.session_state.attendance_df = pd.DataFrame(columns=[
             "id", "name", "grade", "bus", "status", "time", "date"
         ])
     
-    if 'ratings_df' not in st.session_state:
+    if 'ratings_df' not in st.session_state or st.session_state.ratings_df.empty:
         st.session_state.ratings_df = pd.DataFrame(columns=["rating", "comment", "timestamp"])
+    
+    save_data()
 
 # تحميل البيانات المحفوظة
-load_data()
+if not st.session_state.data_loaded:
+    load_data()
 
-# تهيئة البيانات
+# تهيئة البيانات إذا كانت فارغة
 initialize_data()
 
 # ===== الترجمة الكاملة =====
@@ -213,6 +232,9 @@ translations = {
         "status_coming": "قادم",
         "status_not_coming": "لن يحضر",
         "status_not_registered": "لم يسجل",
+        "register_attendance": "📝 تسجيل حضور",
+        "mark_present": "✅ تسجيل حضور",
+        "mark_absent": "❌ تسجيل غياب",
         
         # صفحة أولياء الأمور
         "parents_title": "👨‍👩‍👧 بوابة أولياء الأمور",
@@ -411,6 +433,9 @@ translations = {
         "status_coming": "Coming",
         "status_not_coming": "Not Coming",
         "status_not_registered": "Not Registered",
+        "register_attendance": "📝 Register Attendance",
+        "mark_present": "✅ Mark Present",
+        "mark_absent": "❌ Mark Absent",
         
         # Parents Page
         "parents_title": "👨‍👩‍👧 Parents Portal",
@@ -566,6 +591,7 @@ def t(key):
 
 # ===== وظائف مساعدة محسنة =====
 def add_notification(message):
+    """إضافة إشعار جديد"""
     st.session_state.notifications.append({
         "time": datetime.datetime.now().strftime("%H:%M"),
         "message": message
@@ -573,6 +599,7 @@ def add_notification(message):
     save_data()
 
 def calculate_attendance_stats():
+    """حساب إحصائيات الحضور"""
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     
     if st.session_state.attendance_df.empty:
@@ -593,6 +620,7 @@ def calculate_attendance_stats():
     }
 
 def has_student_registered_today(student_id):
+    """التحقق من تسجيل الطالب اليوم"""
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     
     if st.session_state.attendance_df.empty:
@@ -610,8 +638,10 @@ def has_student_registered_today(student_id):
     return False, None
 
 def register_attendance(student, status):
+    """تسجيل حضور الطالب"""
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     
+    # إزالة أي تسجيل سابق للطالب لنفس اليوم
     st.session_state.attendance_df = st.session_state.attendance_df[
         ~((st.session_state.attendance_df["id"].astype(str) == str(student["id"]).strip()) & 
           (st.session_state.attendance_df["date"] == today))
@@ -659,11 +689,13 @@ def get_average_rating():
     return st.session_state.ratings_df["rating"].mean(), len(st.session_state.ratings_df)
 
 def toggle_theme():
+    """تغيير الثيم"""
     st.session_state.theme = "dark" if st.session_state.theme == "light" else "light"
     save_data()
     st.rerun()
 
 def toggle_language():
+    """تغيير اللغة"""
     st.session_state.lang = "en" if st.session_state.lang == "ar" else "ar"
     save_data()
     st.rerun()
@@ -710,6 +742,31 @@ def delete_student(student_id):
         st.session_state.attendance_df = st.session_state.attendance_df[
             st.session_state.attendance_df["id"].astype(str) != str(student_id).strip()
         ]
+        
+        # حفظ البيانات
+        save_data()
+        return True, "success"
+        
+    except Exception as e:
+        return False, str(e)
+
+def update_student(student_id, name=None, grade=None, bus=None, parent_phone=None):
+    """تحديث بيانات الطالب"""
+    try:
+        # العثور على الطالب
+        mask = st.session_state.students_df["id"].astype(str) == str(student_id).strip()
+        if not mask.any():
+            return False, "not_found"
+        
+        # تحديث البيانات
+        if name:
+            st.session_state.students_df.loc[mask, "name"] = name
+        if grade:
+            st.session_state.students_df.loc[mask, "grade"] = grade
+        if bus:
+            st.session_state.students_df.loc[mask, "bus"] = bus
+        if parent_phone:
+            st.session_state.students_df.loc[mask, "parent_phone"] = parent_phone
         
         # حفظ البيانات
         save_data()
@@ -927,7 +984,8 @@ def contact_developer():
         message = st.text_area("**💬 الرسالة**", height=150, key="contact_message",
                              placeholder="اكتب رسالتك بالتفصيل هنا... شاركنا مشكلتك أو اقتراحك")
         
-        if st.form_submit_button("**🚀 إرسال الرسالة**", use_container_width=True, key="contact_submit"):
+        submitted = st.form_submit_button("**🚀 إرسال الرسالة**", use_container_width=True, key="contact_submit")
+        if submitted:
             if name and email and message:
                 # حفظ الرسالة
                 contact_data = {
@@ -958,8 +1016,10 @@ def contact_developer():
                     - **وقت الاستجابة:** خلال 24 ساعة
                     """)
                     
+                    st.session_state.contact_submitted = True
+                    
                 except Exception as e:
-                    st.success("✅ تم حفظ رسالتك بنجاح وسيتم الرد عليك قريباً!")
+                    st.error(f"حدث خطأ في حفظ الرسالة: {e}")
                     
             else:
                 st.error("**❌ يرجى ملء جميع الحقول المطلوبة**")
@@ -1059,10 +1119,12 @@ def apply_enhanced_styles():
             border-radius: 12px;
             font-weight: 600;
             transition: all 0.3s ease;
+            border: none;
         }
         
         .stButton>button:hover {
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         
         .stTabs [data-baseweb="tab-list"] {
@@ -1081,6 +1143,27 @@ def apply_enhanced_styles():
         
         .stTabs [aria-selected="true"] {
             background-color: rgba(102, 126, 234, 0.2);
+        }
+        
+        .dataframe {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .dataframe th {
+            background: rgba(102, 126, 234, 0.3);
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .dataframe td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .dataframe tr:hover {
+            background: rgba(255,255,255,0.05);
         }
         </style>
         """, unsafe_allow_html=True)
@@ -1178,10 +1261,12 @@ def apply_enhanced_styles():
             border-radius: 12px;
             font-weight: 600;
             transition: all 0.3s ease;
+            border: none;
         }
         
         .stButton>button:hover {
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         
         .stTextInput>div>div>input {
@@ -1214,6 +1299,28 @@ def apply_enhanced_styles():
         .stTabs [aria-selected="true"] {
             background-color: #667eea;
             color: white;
+        }
+        
+        .dataframe {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .dataframe th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .dataframe td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .dataframe tr:hover {
+            background: #f7fafc;
         }
         </style>
         """, unsafe_allow_html=True)
@@ -1372,13 +1479,22 @@ def show_student_page():
                     </div>
                     """, unsafe_allow_html=True)
                 
+                # معلومات إضافية
+                st.markdown(f"""
+                <div class="metric-card">
+                    <h4>📞 {t('parent_phone')}</h4>
+                    <p>{student['parent_phone']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
                 already_registered, current_status = has_student_registered_today(student_id)
                 
                 if already_registered:
+                    status_icon = "✅" if current_status == "قادم" else "❌"
                     st.warning(f"""
-                    **✅ {t('already_registered')}**
+                    **{status_icon} {t('already_registered')}**
                     
-                    **الحالة الحالية:** {current_status}
+                    **{t('current_status')}:** {current_status}
                     """)
                     
                     if st.button(f"**🔄 {t('change_status')}**", use_container_width=True, key="change_status_btn"):
@@ -1400,10 +1516,12 @@ def show_student_page():
                             now = register_attendance(student, "قادم")
                             st.balloons()
                             st.success(f"**🎉 {t('registered_success')}**")
+                            add_notification(f"الطالب {student['name']} سجل حضوره للباص {student['bus']}")
                     with col_btn2:
                         if st.button(f"**❌ {t('not_coming')}**", use_container_width=True, key="not_coming_btn"):
                             now = register_attendance(student, "لن يحضر")
                             st.success(f"**🎉 {t('registered_success')}**")
+                            add_notification(f"الطالب {student['name']} لن يحضر اليوم للباص {student['bus']}")
             
             else:
                 st.error(f"**❌ {t('not_found')}**")
@@ -1444,6 +1562,36 @@ def show_student_page():
             <h2 style="color: #f59e0b;">{stats['percentage']:.1f}%</h2>
         </div>
         """, unsafe_allow_html=True)
+        
+        # آخر الإشعارات
+        if st.session_state.notifications:
+            st.markdown("""
+            <div style='
+                background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+                color: white;
+                padding: 1rem;
+                border-radius: 15px;
+                margin-top: 1rem;
+            '>
+                <h4>🔔 آخر الإشعارات</h4>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            for notification in st.session_state.notifications[-3:]:
+                st.markdown(f"""
+                <div style='
+                    background: rgba(255,255,255,0.1);
+                    padding: 0.75rem;
+                    border-radius: 10px;
+                    margin: 0.5rem 0;
+                    border-left: 3px solid #f59e0b;
+                '>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>{notification['message']}</span>
+                        <small>{notification['time']}</small>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
 def show_driver_page():
     """صفحة السائق"""
@@ -1567,7 +1715,7 @@ def show_driver_page():
             </div>
             """, unsafe_allow_html=True)
         
-        # قائمة الطلاب
+        # قائمة الطلاب مع إمكانية التسجيل المباشر
         st.subheader(f"📋 {t('coming_students')}")
         
         if not bus_students.empty:
@@ -1582,12 +1730,40 @@ def show_driver_page():
                     "الطالب": student["name"],
                     "الصف": student["grade"],
                     "الحالة": f"{status_color} {student_status}",
-                    "رقم الوزارة": student["id"]
+                    "رقم الوزارة": student["id"],
+                    "تسجيل سريع": "✅" if registered else "❌"
                 })
             
             # عرض البيانات في جدول
             student_df = pd.DataFrame(student_data)
             st.dataframe(student_df, use_container_width=True, hide_index=True)
+            
+            # تسجيل حضور سريع
+            st.subheader(f"📝 {t('register_attendance')}")
+            col_id, col_action, col_submit = st.columns([2, 1, 1])
+            
+            with col_id:
+                quick_student_id = st.text_input("رقم الوزارة", placeholder="أدخل رقم الوزارة...", key="quick_student_id")
+            
+            with col_action:
+                quick_action = st.selectbox("الحالة", ["قادم", "لن يحضر"], key="quick_action")
+            
+            with col_submit:
+                if st.button(f"**🚀 {t('save_changes')}**", use_container_width=True, key="quick_register"):
+                    if quick_student_id:
+                        student_info = st.session_state.students_df[
+                            st.session_state.students_df["id"].astype(str) == quick_student_id.strip()
+                        ]
+                        
+                        if not student_info.empty:
+                            student = student_info.iloc[0]
+                            register_attendance(student, quick_action)
+                            st.success(f"تم تسجيل {quick_action} للطالب {student['name']}")
+                            st.rerun()
+                        else:
+                            st.error("لم يتم العثور على الطالب")
+                    else:
+                        st.warning("يرجى إدخال رقم الوزارة")
         else:
             st.info(f"**ℹ️ {t('no_students')}**")
 
@@ -1836,14 +2012,185 @@ def show_admin_page():
             </div>
             """, unsafe_allow_html=True)
         
-        # إدارة الطلاب
-        st.subheader("👥 إدارة الطلاب")
+        # تبويبات إدارة الطلاب والإعدادات
+        tab1, tab2, tab3 = st.tabs(["👥 إدارة الطلاب", "🔧 الإعدادات", "📊 التقارير"])
         
-        # عرض قائمة الطلاب
-        if not st.session_state.students_df.empty:
-            st.dataframe(st.session_state.students_df, use_container_width=True)
-        else:
-            st.info("لا يوجد طلاب مسجلين في النظام")
+        with tab1:
+            # إدارة الطلاب
+            st.subheader("👥 إدارة الطلاب")
+            
+            # إضافة طالب جديد
+            with st.expander("➕ إضافة طالب جديد"):
+                col_add1, col_add2 = st.columns(2)
+                
+                with col_add1:
+                    new_id = st.text_input("رقم الوزارة", key="new_student_id")
+                    new_name = st.text_input("اسم الطالب", key="new_student_name")
+                    new_grade = st.selectbox("الصف", ["6-A", "6-B", "7-A", "7-B", "8-A", "8-B", "8-C", "9-A", "9-B", "10-A", "10-B", "11-A", "11-B"], key="new_student_grade")
+                
+                with col_add2:
+                    new_bus = st.selectbox("الباص", ["1", "2", "3"], key="new_student_bus")
+                    new_phone = st.text_input("هاتف ولي الأمر", key="new_student_phone")
+                
+                if st.button("➕ إضافة الطالب", key="add_student_btn"):
+                    if new_id and new_name and new_grade and new_bus and new_phone:
+                        success, message = add_new_student(new_id, new_name, new_grade, new_bus, new_phone)
+                        if success:
+                            st.success("✅ تم إضافة الطالب بنجاح!")
+                            st.rerun()
+                        elif message == "student_exists":
+                            st.error("❌ رقم الوزارة موجود مسبقاً!")
+                        else:
+                            st.error(f"❌ حدث خطأ: {message}")
+                    else:
+                        st.warning("⚠️ يرجى ملء جميع الحقول")
+            
+            # عرض وتعديل الطلاب
+            st.subheader("📋 قائمة الطلاب")
+            
+            if not st.session_state.students_df.empty:
+                # حقل بحث
+                search_term = st.text_input("🔍 بحث عن طالب...", key="student_search")
+                
+                if search_term:
+                    filtered_students = st.session_state.students_df[
+                        st.session_state.students_df["name"].str.contains(search_term, case=False) |
+                        st.session_state.students_df["id"].astype(str).str.contains(search_term) |
+                        st.session_state.students_df["grade"].str.contains(search_term, case=False)
+                    ]
+                else:
+                    filtered_students = st.session_state.students_df
+                
+                st.dataframe(filtered_students, use_container_width=True)
+                
+                # حذف طالب
+                st.subheader("🗑️ حذف طالب")
+                delete_id = st.text_input("أدخل رقم الوزارة للحذف", key="delete_student_id")
+                
+                if st.button("🗑️ حذف الطالب", key="delete_student_btn"):
+                    if delete_id:
+                        if str(delete_id).strip() in st.session_state.students_df["id"].astype(str).values:
+                            if st.checkbox("⚠️ تأكيد الحذف - هذه العملية لا يمكن التراجع عنها"):
+                                success, message = delete_student(delete_id)
+                                if success:
+                                    st.success("✅ تم حذف الطالب بنجاح!")
+                                    st.rerun()
+                                else:
+                                    st.error(f"❌ حدث خطأ: {message}")
+                        else:
+                            st.error("❌ لم يتم العثور على الطالب")
+                    else:
+                        st.warning("⚠️ يرجى إدخال رقم الوزارة")
+            else:
+                st.info("لا يوجد طلاب مسجلين في النظام")
+        
+        with tab2:
+            # الإعدادات
+            st.subheader("🔧 إعدادات النظام")
+            
+            col_set1, col_set2 = st.columns(2)
+            
+            with col_set1:
+                st.subheader("🔐 كلمات المرور")
+                
+                # كلمة مرور الإدارة
+                st.markdown("**كلمة مرور الإدارة**")
+                current_admin_pass = st.text_input("الكلمة الحالية", value=st.session_state.admin_password, type="password", key="current_admin_pass")
+                new_admin_pass = st.text_input("الكلمة الجديدة", type="password", key="new_admin_pass")
+                confirm_admin_pass = st.text_input("تأكيد الكلمة الجديدة", type="password", key="confirm_admin_pass")
+                
+                if st.button("💾 حفظ كلمة مرور الإدارة", key="save_admin_pass"):
+                    if new_admin_pass == confirm_admin_pass:
+                        st.session_state.admin_password = new_admin_pass
+                        save_data()
+                        st.success("✅ تم تحديث كلمة مرور الإدارة بنجاح!")
+                    else:
+                        st.error("❌ كلمات المرور غير متطابقة")
+                
+                # كلمات مرور الباصات
+                st.markdown("**كلمات مرور الباصات**")
+                for bus_num in ["1", "2", "3"]:
+                    current_pass = st.session_state.bus_passwords.get(bus_num, "")
+                    new_pass = st.text_input(f"كلمة باص {bus_num}", value=current_pass, type="password", key=f"bus_pass_{bus_num}")
+                    st.session_state.bus_passwords[bus_num] = new_pass
+                
+                if st.button("💾 حفظ كلمات مرور الباصات", key="save_bus_pass"):
+                    save_data()
+                    st.success("✅ تم تحديث كلمات مرور الباصات بنجاح!")
+            
+            with col_set2:
+                st.subheader("🎨 الإعدادات العامة")
+                
+                # اللغة
+                current_lang = st.session_state.lang
+                new_lang = st.selectbox("🌐 اللغة", ["ar", "en"], index=0 if current_lang == "ar" else 1, key="language_select")
+                if new_lang != current_lang:
+                    st.session_state.lang = new_lang
+                    save_data()
+                    st.rerun()
+                
+                # الثيم
+                current_theme = st.session_state.theme
+                new_theme = st.selectbox("🎨 الثيم", ["light", "dark"], index=0 if current_theme == "light" else 1, key="theme_select")
+                if new_theme != current_theme:
+                    st.session_state.theme = new_theme
+                    save_data()
+                    st.rerun()
+                
+                # حجم الخط
+                font_sizes = ["افتراضي", "كبير", "كبير جداً"]
+                current_font = st.session_state.font_size
+                new_font = st.selectbox("🔠 حجم الخط", font_sizes, index=font_sizes.index(current_font), key="font_select")
+                if new_font != current_font:
+                    st.session_state.font_size = new_font
+                    save_data()
+        
+        with tab3:
+            # التقارير
+            st.subheader("📊 التقارير والإحصائيات")
+            
+            # تقرير الحضور اليومي
+            today = datetime.datetime.now().strftime("%Y-%m-%d")
+            today_attendance = st.session_state.attendance_df[
+                st.session_state.attendance_df["date"] == today
+            ]
+            
+            col_rep1, col_rep2 = st.columns(2)
+            
+            with col_rep1:
+                st.markdown(f"""
+                <div class="metric-card">
+                    <h4>📅 تقرير اليوم</h4>
+                    <p><strong>التاريخ:</strong> {today}</p>
+                    <p><strong>إجمالي المسجلين:</strong> {len(today_attendance)}</p>
+                    <p><strong>قادمون:</strong> {len(today_attendance[today_attendance['status'] == 'قادم'])}</p>
+                    <p><strong>غائبون:</strong> {len(today_attendance[today_attendance['status'] == 'لن يحضر'])}</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col_rep2:
+                # تصدير البيانات
+                st.markdown("**📤 تصدير البيانات**")
+                
+                if st.button("📥 تصدير بيانات الطلاب", key="export_students"):
+                    csv = st.session_state.students_df.to_csv(index=False).encode('utf-8')
+                    st.download_button(
+                        label="📥 تحميل ملف CSV",
+                        data=csv,
+                        file_name=f"students_{today}.csv",
+                        mime="text/csv",
+                        key="download_students"
+                    )
+                
+                if st.button("📥 تصدير بيانات الحضور", key="export_attendance"):
+                    csv = st.session_state.attendance_df.to_csv(index=False).encode('utf-8')
+                    st.download_button(
+                        label="📥 تحميل ملف CSV",
+                        data=csv,
+                        file_name=f"attendance_{today}.csv",
+                        mime="text/csv",
+                        key="download_attendance"
+                    )
         
         # إجراءات النظام
         st.subheader("⚙️ إجراءات النظام")
@@ -1851,19 +2198,28 @@ def show_admin_page():
         col_act1, col_act2, col_act3 = st.columns(3)
         
         with col_act1:
-            if st.button("🔄 إعادة تعيين البيانات", use_container_width=True):
-                initialize_data()
-                st.success("تم إعادة تعيين البيانات بنجاح")
-                st.rerun()
+            if st.button("🔄 إعادة تعيين البيانات", use_container_width=True, key="reset_data_btn"):
+                if st.checkbox("⚠️ تأكيد إعادة التعيين - سيتم فقدان جميع البيانات الحالية"):
+                    initialize_data()
+                    st.success("✅ تم إعادة تعيين البيانات بنجاح")
+                    st.rerun()
         
         with col_act2:
-            if st.button("📥 نسخة احتياطية", use_container_width=True):
-                save_data()
-                st.success("تم إنشاء نسخة احتياطية بنجاح")
+            if st.button("📥 نسخة احتياطية", use_container_width=True, key="backup_btn"):
+                if save_data():
+                    st.success("✅ تم إنشاء نسخة احتياطية بنجاح")
+                else:
+                    st.error("❌ فشل في إنشاء النسخة الاحتياطية")
         
         with col_act3:
-            if st.button("🔄 تحديث كلمات المرور", use_container_width=True):
-                st.info("استخدم النموذج أدناه لتغيير كلمات المرور")
+            if st.button("🗑️ مسح سجلات الحضور", use_container_width=True, key="clear_attendance"):
+                if st.checkbox("⚠️ تأكيد المسح - سيتم حذف جميع سجلات الحضور"):
+                    st.session_state.attendance_df = pd.DataFrame(columns=[
+                        "id", "name", "grade", "bus", "status", "time", "date"
+                    ])
+                    save_data()
+                    st.success("✅ تم مسح سجلات الحضور بنجاح")
+                    st.rerun()
 
 def show_about_page():
     """صفحة حول النظام"""
@@ -1881,7 +2237,7 @@ def show_about_page():
     """, unsafe_allow_html=True)
     
     # تبويبات الصفحة
-    tab1, tab2, tab3 = st.tabs(["🎯 المميزات", "👥 فريق التطوير", "📧 التواصل"])
+    tab1, tab2, tab3, tab4 = st.tabs(["🎯 المميزات", "👥 فريق التطوير", "⭐ التقييم", "📧 التواصل"])
     
     with tab1:
         # مميزات النظام
@@ -1936,7 +2292,7 @@ def show_about_page():
                 """, unsafe_allow_html=True)
         
         with col2:
-            # معلومات الإصدار ونظام التقييم
+            # معلومات الإصدار
             st.subheader("📋 معلومات النظام")
             
             # معلومات الإصدار
@@ -1946,13 +2302,26 @@ def show_about_page():
                 <p><strong>{t('version')}:</strong> 2.0</p>
                 <p><strong>{t('release_date')}:</strong> 2025</p>
                 <p><strong>{t('status_stable')}</strong></p>
+                <p><strong>آخر تحديث:</strong> {datetime.datetime.now().strftime('%Y-%m-%d')}</p>
             </div>
             """, unsafe_allow_html=True)
             
-            # نظام التقييم
-            show_rating_system_tab()
+            # المساعد الذكي
+            st.markdown(f"""
+            <div class="metric-card">
+                <h4>🤖 المساعد الذكي</h4>
+                <p>يساعدك في حل المشكلات والإجابة على استفساراتك</p>
+                <div style="margin-top: 1rem;">
+                    <p style="font-size: 0.9rem; opacity: 0.8;">💡 جرب المساعد الذكي في تبويب التواصل</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
     
     with tab3:
+        # نظام التقييم
+        show_rating_system_tab()
+    
+    with tab4:
         # المساعد الذكي والتواصل مع المطور
         col1, col2 = st.columns([1, 1])
         
@@ -2015,16 +2384,19 @@ def show_rating_system_tab():
     )
     
     if st.button(f"**🚀 {t('submit_rating')}**", use_container_width=True, key="submit_rating_about"):
-        add_rating(rating, comment)
-        st.success(t("rating_success"))
-        st.balloons()
-        st.rerun()
+        if rating > 0:
+            add_rating(rating, comment)
+            st.success(t("rating_success"))
+            st.balloons()
+            st.rerun()
+        else:
+            st.warning("⚠️ يرجى اختيار تقييم")
     
     # عرض آخر التقييمات
     if not st.session_state.ratings_df.empty:
         st.markdown("---")
         st.subheader("📝 آخر التقييمات")
-        latest_ratings = st.session_state.ratings_df.tail(3)
+        latest_ratings = st.session_state.ratings_df.tail(5).iloc[::-1]
         for _, rating in latest_ratings.iterrows():
             stars = "⭐" * rating["rating"] + "☆" * (5 - rating["rating"])
             st.markdown(f"""
@@ -2035,11 +2407,11 @@ def show_rating_system_tab():
                 margin: 0.5rem 0;
                 border-left: 4px solid #f59e0b;
             '>
-                <div style="display: flex; justify-content: between; align-items: center;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-size: 1.1rem;">{stars}</span>
                     <small style="opacity: 0.7;">{rating['timestamp'].split()[0]}</small>
                 </div>
-                {f"<p style='margin: 0.5rem 0 0 0; opacity: 0.8; font-style: italic;'>{rating['comment']}</p>" if pd.notna(rating['comment']) and rating['comment'].strip() else ""}
+                {f"<p style='margin: 0.5rem 0 0 0; opacity: 0.8; font-style: italic;'>{rating['comment']}</p>" if pd.notna(rating['comment']) and str(rating['comment']).strip() else ""}
             </div>
             """, unsafe_allow_html=True)
 
