@@ -65,6 +65,8 @@ if "contact_submitted" not in st.session_state:
     st.session_state.contact_submitted = False
 if "student_health_conditions" not in st.session_state:
     st.session_state.student_health_conditions = {}
+if "temp_rating" not in st.session_state:
+    st.session_state.temp_rating = 0
 
 # ===== وظائف حفظ البيانات =====
 def save_data():
@@ -365,8 +367,8 @@ translations = {
         "theme_dark": "🌙",
         "language": "🌐",
         
-        # نظام التقييم - تم إصلاحه
-        "rating_system": "⭐ نظام التقييم المتطور",
+        # نظام التقييم - تم تحسينه
+        "rating_system": "⭐ نظام التقييم التفاعلي",
         "rate_app": "قيم تجربتك مع التطبيق",
         "your_rating": "تقييمك",
         "your_comment": "شاركنا رأيك (اختياري)",
@@ -384,11 +386,12 @@ translations = {
         "rate_now": "قيم الآن",
         "latest_ratings": "آخر التقييمات",
         "no_ratings_yet": "لا توجد تقييمات بعد، كن أول من يقيم!",
+        "click_stars": "اضغط على النجوم للتقييم",
         
         # الفوتر
         "footer": "🚍 نظام الباص الذكي - الإصدار 2.0",
         "rights": "© 2025 جميع الحقوق محفوظة",
-        "team": "تم التطوير بواسطة: إياد مصطفى | التصميم: ايمن جلال | الإشراف: قسم النادي البيئي",
+        "team": "تم التطوير بواسطة: إياد مصطفى",
         
         # مميزات النظام
         "feature1": "تسجيل حضور ذكي",
@@ -588,8 +591,8 @@ translations = {
         "theme_dark": "🌙",
         "language": "🌐",
         
-        # Rating System - Fixed
-        "rating_system": "⭐ Advanced Rating System",
+        # Rating System - Enhanced
+        "rating_system": "⭐ Interactive Rating System",
         "rate_app": "Rate Your Experience",
         "your_rating": "Your Rating",
         "your_comment": "Share your feedback (optional)",
@@ -607,11 +610,12 @@ translations = {
         "rate_now": "Rate Now",
         "latest_ratings": "Latest Ratings",
         "no_ratings_yet": "No ratings yet, be the first to rate!",
+        "click_stars": "Click on stars to rate",
         
         # Footer
         "footer": "🚍 Smart Bus System - Version 2.0",
         "rights": "© 2025 All Rights Reserved",
-        "team": "Developed by: Eyad Mustafa | Design: Ayman Galal | Supervision: Environmental Club",
+        "team": "Developed by: Eyad Mustafa",
         
         # Features
         "feature1": "Smart Attendance",
@@ -728,7 +732,7 @@ def register_attendance(student, status):
     return now
 
 def add_rating(rating, comment):
-    """إضافة تقييم جديد - تم إصلاحه"""
+    """إضافة تقييم جديد"""
     try:
         new_rating = pd.DataFrame([{
             "rating": rating,
@@ -950,12 +954,13 @@ def smart_ai_assistant():
             with st.chat_message("assistant"):
                 st.markdown(f"""
                 <div style='
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: linear-gradient(135deg, #00b4d8, #0077b6);
                     color: white;
                     padding: 1rem;
                     border-radius: 15px;
                     margin: 0.5rem 0;
                     border: none;
+                    box-shadow: 0 4px 6px rgba(0, 180, 216, 0.3);
                 '>
                     {msg["content"]}
                 </div>
@@ -964,12 +969,13 @@ def smart_ai_assistant():
             with st.chat_message("user"):
                 st.markdown(f"""
                 <div style='
-                    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                    background: linear-gradient(135deg, #2a9d8f, #264653);
                     color: white;
                     padding: 1rem;
                     border-radius: 15px;
                     margin: 0.5rem 0;
                     border: none;
+                    box-shadow: 0 4px 6px rgba(42, 157, 143, 0.3);
                 '>
                     {msg["content"]}
                 </div>
@@ -1113,12 +1119,13 @@ def contact_developer():
     with st.form("contact_form"):
         st.markdown(f"""
         <div style='
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00b4d8, #0077b6);
             color: white;
             padding: 1.5rem;
             border-radius: 15px;
             margin-bottom: 2rem;
             text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 180, 216, 0.3);
         '>
             <h3>{t("contact_form")}</h3>
             <p>{t("contact_title")}</p>
@@ -1181,32 +1188,53 @@ def contact_developer():
             else:
                 st.error(f"**❌ {t('error') if st.session_state.lang == 'ar' else 'Please fill all required fields'}**")
 
-# ===== التصميم المحسن =====
+# ===== التصميم المحسن والمحدث =====
 def apply_enhanced_styles():
-    """تطبيق التصميم المحسن"""
+    """تطبيق التصميم المحسن بالألوان الجديدة"""
+    
+    # ألوان جديدة ومحسنة
+    primary_color = "#00b4d8"  # أزرق فاتح
+    secondary_color = "#0077b6"  # أزرق غامق
+    accent_color = "#2a9d8f"  # أخضر مزرق
+    warning_color = "#e9c46a"  # أصفر
+    danger_color = "#e76f51"  # برتقالي محمر
+    success_color = "#2a9d8f"  # أخضر
+    
     if st.session_state.theme == "dark":
-        st.markdown("""
+        st.markdown(f"""
         <style>
-        .stApp {
-            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+        .stApp {{
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        }}
         
-        .main-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        /* تحسينات عامة */
+        .stMarkdown, .stText, .stTitle {{
+            color: #ffffff !important;
+        }}
+        
+        /* الهيدر الرئيسي */
+        .main-header {{
+            background: linear-gradient(135deg, {primary_color}, {secondary_color});
             color: white;
             padding: 3rem 2rem;
             border-radius: 20px;
             text-align: center;
             margin-bottom: 2rem;
             border: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0, 180, 216, 0.3);
             position: relative;
             overflow: hidden;
-        }
+            animation: gradientShift 10s ease infinite;
+        }}
         
-        .main-header::before {
+        @keyframes gradientShift {{
+            0%, 100% {{ background-position: 0% 50%; }}
+            50% {{ background-position: 100% 50%; }}
+        }}
+        
+        .main-header::before {{
             content: '';
             position: absolute;
             top: -50%;
@@ -1215,9 +1243,10 @@ def apply_enhanced_styles():
             height: 200%;
             background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
             animation: float 6s ease-in-out infinite;
-        }
+        }}
         
-        .metric-card {
+        /* البطاقات الإحصائية */
+        .metric-card {{
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             padding: 1.5rem;
@@ -1225,33 +1254,37 @@ def apply_enhanced_styles():
             text-align: center;
             margin: 0.5rem 0;
             border: 1px solid rgba(255,255,255,0.2);
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
+        }}
         
-        .metric-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        .metric-card:hover {{
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 180, 216, 0.3);
             background: rgba(255, 255, 255, 0.15);
-        }
+            border-color: {primary_color};
+        }}
         
-        .nav-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        /* أزرار التنقل */
+        .nav-button {{
+            background: linear-gradient(135deg, {primary_color}, {secondary_color});
             color: white;
             border: none;
             border-radius: 12px;
             padding: 0.75rem 1rem;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             margin: 0.2rem;
-        }
+            box-shadow: 0 4px 6px rgba(0, 180, 216, 0.2);
+        }}
         
-        .nav-button:hover {
+        .nav-button:hover {{
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
+            box-shadow: 0 10px 20px rgba(0, 180, 216, 0.4);
+        }}
         
-        .feature-card {
+        /* بطاقات المميزات */
+        .feature-card {{
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             padding: 2rem;
@@ -1259,94 +1292,229 @@ def apply_enhanced_styles():
             text-align: center;
             margin: 1rem 0;
             border: 1px solid rgba(255,255,255,0.2);
-            transition: all 0.3s ease;
-        }
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }}
         
-        .feature-card:hover {
-            transform: translateY(-5px);
+        .feature-card:hover {{
+            transform: translateY(-5px) scale(1.02);
             background: rgba(255, 255, 255, 0.15);
-        }
+            border-color: {primary_color};
+            box-shadow: 0 15px 30px rgba(0, 180, 216, 0.2);
+        }}
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        .stButton>button {
+        /* الأزرار العامة */
+        .stButton > button {{
             border-radius: 12px;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: none;
-        }
+            background: linear-gradient(135deg, {primary_color}, {secondary_color});
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 180, 216, 0.2);
+        }}
         
-        .stButton>button:hover {
+        .stButton > button:hover {{
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
+            box-shadow: 0 10px 20px rgba(0, 180, 216, 0.4);
+        }}
         
-        .stTabs [data-baseweb="tab-list"] {
+        /* علامات التبويب */
+        .stTabs [data-baseweb="tab-list"] {{
             gap: 8px;
-        }
+            background: rgba(255, 255, 255, 0.05);
+            padding: 5px;
+            border-radius: 15px;
+        }}
         
-        .stTabs [data-baseweb="tab"] {
+        .stTabs [data-baseweb="tab"] {{
             height: 50px;
             white-space: pre-wrap;
             background-color: rgba(255,255,255,0.1);
-            border-radius: 10px 10px 0px 0px;
+            border-radius: 10px;
             gap: 1px;
-            padding-top: 10px;
-            padding-bottom: 10px;
-        }
+            padding: 10px 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }}
         
-        .stTabs [aria-selected="true"] {
-            background-color: rgba(102, 126, 234, 0.2);
-        }
+        .stTabs [aria-selected="true"] {{
+            background: linear-gradient(135deg, {primary_color}, {secondary_color});
+            color: white;
+            border-color: transparent;
+        }}
         
-        .dataframe {
+        /* جداول البيانات */
+        .dataframe {{
             width: 100%;
             border-collapse: collapse;
-        }
+            border-radius: 15px;
+            overflow: hidden;
+        }}
         
-        .dataframe th {
-            background: rgba(102, 126, 234, 0.3);
+        .dataframe th {{
+            background: linear-gradient(135deg, {primary_color}, {secondary_color});
+            color: white;
             padding: 12px;
             text-align: left;
             font-weight: bold;
-        }
+        }}
         
-        .dataframe td {
+        .dataframe td {{
             padding: 10px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
+            background: rgba(255, 255, 255, 0.05);
+        }}
         
-        .dataframe tr:hover {
-            background: rgba(255,255,255,0.05);
-        }
+        .dataframe tr:hover td {{
+            background: rgba(255, 255, 255, 0.1);
+        }}
+        
+        /* صناديق الإدخال */
+        .stTextInput>div>div>input {{
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.2);
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }}
+        
+        .stTextInput>div>div>input:focus {{
+            border-color: {primary_color};
+            box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+        }}
+        
+        /* القوائم المنسدلة */
+        .stSelectbox>div>div {{
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }}
+        
+        /* تأثيرات الحركة */
+        @keyframes float {{
+            0%, 100% {{ transform: translateY(0px); }}
+            50% {{ transform: translateY(-10px); }}
+        }}
+        
+        @keyframes pulse {{
+            0%, 100% {{ transform: scale(1); }}
+            50% {{ transform: scale(1.05); }}
+        }}
+        
+        /* تحسينات للشاشات الصغيرة */
+        @media (max-width: 768px) {{
+            .title {{
+                font-size: 2rem;
+            }}
+            .metric-card {{
+                padding: 1rem;
+            }}
+        }}
+        
+        /* تصميم نجوم التقييم */
+        .rating-stars {{
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            direction: ltr;
+        }}
+        
+        .star {{
+            font-size: 40px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }}
+        
+        .star:hover {{
+            transform: scale(1.2) rotate(5deg);
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }}
+        
+        .star.active {{
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            animation: starPulse 1s infinite;
+        }}
+        
+        @keyframes starPulse {{
+            0%, 100% {{ transform: scale(1); }}
+            50% {{ transform: scale(1.1); }}
+        }}
+        
+        /* تصميم الإشعارات */
+        .notification {{
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid {primary_color};
+            animation: slideIn 0.5s ease;
+        }}
+        
+        @keyframes slideIn {{
+            from {{
+                opacity: 0;
+                transform: translateX(-20px);
+            }}
+            to {{
+                opacity: 1;
+                transform: translateX(0);
+            }}
+        }}
+        
+        /* تصميم الفوتر */
+        .footer {{
+            background: linear-gradient(135deg, rgba(0, 180, 216, 0.1), rgba(0, 119, 182, 0.1));
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 3rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }}
         </style>
         """, unsafe_allow_html=True)
     else:
-        st.markdown("""
+        st.markdown(f"""
         <style>
-        .stApp {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            color: #2d3748;
+        .stApp {{
+            background: linear-gradient(135deg, #f0f9ff 0%, #e6f3ff 50%, #d9eeff 100%);
+            color: #1e293b;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        }}
         
-        .main-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        /* تحسينات عامة */
+        .stMarkdown, .stText, .stTitle {{
+            color: #1e293b !important;
+        }}
+        
+        /* الهيدر الرئيسي */
+        .main-header {{
+            background: linear-gradient(135deg, {primary_color}, {secondary_color});
             color: white;
             padding: 3rem 2rem;
             border-radius: 20px;
             text-align: center;
             margin-bottom: 2rem;
             border: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0, 180, 216, 0.2);
             position: relative;
             overflow: hidden;
-        }
+            animation: gradientShift 10s ease infinite;
+        }}
         
-        .main-header::before {
+        @keyframes gradientShift {{
+            0%, 100% {{ background-position: 0% 50%; }}
+            50% {{ background-position: 100% 50%; }}
+        }}
+        
+        .main-header::before {{
             content: '';
             position: absolute;
             top: -50%;
@@ -1355,9 +1523,10 @@ def apply_enhanced_styles():
             height: 200%;
             background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
             animation: float 6s ease-in-out infinite;
-        }
+        }}
         
-        .metric-card {
+        /* البطاقات الإحصائية */
+        .metric-card {{
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
             padding: 1.5rem;
@@ -1365,33 +1534,37 @@ def apply_enhanced_styles():
             text-align: center;
             margin: 0.5rem 0;
             border: 1px solid rgba(255,255,255,0.5);
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 5px 15px rgba(0, 180, 216, 0.1);
+        }}
         
-        .metric-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        .metric-card:hover {{
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 180, 216, 0.2);
             background: rgba(255, 255, 255, 1);
-        }
+            border-color: {primary_color};
+        }}
         
-        .nav-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        /* أزرار التنقل */
+        .nav-button {{
+            background: linear-gradient(135deg, {primary_color}, {secondary_color});
             color: white;
             border: none;
             border-radius: 12px;
             padding: 0.75rem 1rem;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             margin: 0.2rem;
-        }
+            box-shadow: 0 4px 6px rgba(0, 180, 216, 0.2);
+        }}
         
-        .nav-button:hover {
+        .nav-button:hover {{
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
+            box-shadow: 0 10px 20px rgba(0, 180, 216, 0.3);
+        }}
         
-        .feature-card {
+        /* بطاقات المميزات */
+        .feature-card {{
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
             padding: 2rem;
@@ -1399,90 +1572,375 @@ def apply_enhanced_styles():
             text-align: center;
             margin: 1rem 0;
             border: 1px solid rgba(255,255,255,0.5);
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 180, 216, 0.1);
+        }}
         
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        .feature-card:hover {{
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 180, 216, 0.2);
             background: rgba(255, 255, 255, 1);
-        }
+            border-color: {primary_color};
+        }}
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        .stButton>button {
+        /* الأزرار العامة */
+        .stButton > button {{
             border-radius: 12px;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: none;
-        }
+            background: linear-gradient(135deg, {primary_color}, {secondary_color});
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 180, 216, 0.2);
+        }}
         
-        .stButton>button:hover {
+        .stButton > button:hover {{
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
+            box-shadow: 0 10px 20px rgba(0, 180, 216, 0.3);
+        }}
         
-        .stTextInput>div>div>input {
-            border-radius: 12px;
-            border: 2px solid #e2e8f0;
-            padding: 0.75rem 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .stTextInput>div>div>input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .stTabs [data-baseweb="tab-list"] {
+        /* علامات التبويب */
+        .stTabs [data-baseweb="tab-list"] {{
             gap: 8px;
-        }
+            background: rgba(255, 255, 255, 0.5);
+            padding: 5px;
+            border-radius: 15px;
+        }}
         
-        .stTabs [data-baseweb="tab"] {
+        .stTabs [data-baseweb="tab"] {{
             height: 50px;
             white-space: pre-wrap;
             background-color: #f8f9fa;
-            border-radius: 10px 10px 0px 0px;
+            border-radius: 10px;
             gap: 1px;
-            padding-top: 10px;
-            padding-bottom: 10px;
+            padding: 10px 20px;
             border: 1px solid #e9ecef;
-        }
+            transition: all 0.3s ease;
+            color: #1e293b;
+        }}
         
-        .stTabs [aria-selected="true"] {
-            background-color: #667eea;
+        .stTabs [aria-selected="true"] {{
+            background: linear-gradient(135deg, {primary_color}, {secondary_color});
             color: white;
-        }
+            border-color: transparent;
+        }}
         
-        .dataframe {
+        /* جداول البيانات */
+        .dataframe {{
             width: 100%;
             border-collapse: collapse;
-        }
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 180, 216, 0.1);
+        }}
         
-        .dataframe th {
-            background: #667eea;
+        .dataframe th {{
+            background: linear-gradient(135deg, {primary_color}, {secondary_color});
             color: white;
             padding: 12px;
             text-align: left;
             font-weight: bold;
-        }
+        }}
         
-        .dataframe td {
+        .dataframe td {{
             padding: 10px;
             border-bottom: 1px solid #e2e8f0;
-        }
+            background: white;
+        }}
         
-        .dataframe tr:hover {
-            background: #f7fafc;
-        }
+        .dataframe tr:hover td {{
+            background: #f8f9fa;
+        }}
+        
+        /* صناديق الإدخال */
+        .stTextInput>div>div>input {{
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+            background: white;
+            color: #1e293b;
+        }}
+        
+        .stTextInput>div>div>input:focus {{
+            border-color: {primary_color};
+            box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.2);
+        }}
+        
+        /* القوائم المنسدلة */
+        .stSelectbox>div>div {{
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #1e293b;
+        }}
+        
+        /* تأثيرات الحركة */
+        @keyframes float {{
+            0%, 100% {{ transform: translateY(0px); }}
+            50% {{ transform: translateY(-10px); }}
+        }}
+        
+        @keyframes pulse {{
+            0%, 100% {{ transform: scale(1); }}
+            50% {{ transform: scale(1.05); }}
+        }}
+        
+        /* تحسينات للشاشات الصغيرة */
+        @media (max-width: 768px) {{
+            .title {{
+                font-size: 2rem;
+            }}
+            .metric-card {{
+                padding: 1rem;
+            }}
+        }}
+        
+        /* تصميم نجوم التقييم */
+        .rating-stars {{
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            direction: ltr;
+        }}
+        
+        .star {{
+            font-size: 40px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }}
+        
+        .star:hover {{
+            transform: scale(1.2) rotate(5deg);
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }}
+        
+        .star.active {{
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            animation: starPulse 1s infinite;
+        }}
+        
+        @keyframes starPulse {{
+            0%, 100% {{ transform: scale(1); }}
+            50% {{ transform: scale(1.1); }}
+        }}
+        
+        /* تصميم الإشعارات */
+        .notification {{
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 0.5rem 0;
+            background: white;
+            border-left: 4px solid {primary_color};
+            box-shadow: 0 5px 15px rgba(0, 180, 216, 0.1);
+            animation: slideIn 0.5s ease;
+        }}
+        
+        @keyframes slideIn {{
+            from {{
+                opacity: 0;
+                transform: translateX(-20px);
+            }}
+            to {{
+                opacity: 1;
+                transform: translateX(0);
+            }}
+        }}
+        
+        /* تصميم الفوتر */
+        .footer {{
+            background: linear-gradient(135deg, rgba(0, 180, 216, 0.1), rgba(0, 119, 182, 0.1));
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 3rem;
+            border: 1px solid rgba(0, 180, 216, 0.2);
+        }}
         </style>
         """, unsafe_allow_html=True)
 
 apply_enhanced_styles()
+
+# ===== نظام التقييم المحسن بالنجوم التفاعلية =====
+def show_rating_system_tab():
+    """نظام التقييم المحسن بالنجوم التفاعلية"""
+    st.subheader(f"⭐ {t('rating_system')}")
+    
+    # إحصائيات التقييمات
+    avg_rating, total_ratings = get_average_rating()
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # عرض متوسط التقييم مع تصميم محسن
+        st.markdown(f"""
+        <div class="metric-card">
+            <h4>📊 {t('average_rating')}</h4>
+            <h1 style="color: #f59e0b; text-align: center; font-size: 3rem;">{avg_rating:.1f}</h1>
+            <div style="text-align: center; font-size: 2rem; margin: 0.5rem 0; color: #ffd700;">
+                {"⭐" * int(avg_rating) if avg_rating > 0 else ""}
+                {"☆" * (5 - int(avg_rating))}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown(f"""
+        <div class="metric-card">
+            <h4>📈 {t('total_ratings')}</h4>
+            <h2 style="color: {primary_color}; text-align: center; font-size: 3rem;">{total_ratings}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    st.subheader(f"💬 {t('rate_app')}")
+    
+    # نظام النجوم التفاعلي باستخدام HTML/CSS/JavaScript
+    st.markdown(f"""
+    <div style="text-align: center; margin: 20px 0;">
+        <p style="font-size: 1.2rem; color: #666;">{t('click_stars')}</p>
+        <div class="rating-stars" id="rating-stars">
+            <span class="star" onclick="setRating(1)" id="star1">☆</span>
+            <span class="star" onclick="setRating(2)" id="star2">☆</span>
+            <span class="star" onclick="setRating(3)" id="star3">☆</span>
+            <span class="star" onclick="setRating(4)" id="star4">☆</span>
+            <span class="star" onclick="setRating(5)" id="star5">☆</span>
+        </div>
+        <p style="font-size: 1.1rem; color: #666; margin-top: 10px;" id="rating-text">
+            {t('select_rating')}
+        </p>
+    </div>
+    
+    <script>
+    let currentRating = 0;
+    
+    function setRating(rating) {{
+        currentRating = rating;
+        
+        // تحديث مظهر النجوم
+        for (let i = 1; i <= 5; i++) {{
+            const star = document.getElementById('star' + i);
+            if (i <= rating) {{
+                star.innerHTML = '⭐';
+                star.classList.add('active');
+            }} else {{
+                star.innerHTML = '☆';
+                star.classList.remove('active');
+            }}
+        }}
+        
+        // تحديث النص
+        const ratingText = document.getElementById('rating-text');
+        const ratingMessages = [
+            '{t("poor")}',
+            '{t("fair")}',
+            '{t("good")}',
+            '{t("very_good")}',
+            '{t("excellent")}'
+        ];
+        ratingText.innerHTML = `${{ratingMessages[rating-1]}} ({{rating}}/5)`;
+        
+        // تخزين التقييم في sessionStorage
+        sessionStorage.setItem('selectedRating', rating);
+    }}
+    
+    // استعادة التقييم السابق إذا وجد
+    const savedRating = sessionStorage.getItem('selectedRating');
+    if (savedRating) {{
+        setRating(parseInt(savedRating));
+    }}
+    </script>
+    """, unsafe_allow_html=True)
+    
+    # حقل التعليق
+    comment = st.text_area(
+        f"**{t('your_comment')}**",
+        placeholder=t("your_comment"),
+        height=100,
+        key="rating_comment"
+    )
+    
+    # أزرار التقييم
+    col_submit, col_reset, col_space = st.columns([2, 1, 3])
+    
+    with col_submit:
+        if st.button(f"**🚀 {t('submit_rating')}**", use_container_width=True, key="submit_rating"):
+            # الحصول على التقييم من sessionStorage عبر JavaScript
+            st.markdown("""
+            <script>
+            const rating = sessionStorage.getItem('selectedRating');
+            if (rating) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'rating_value';
+                input.value = rating;
+                document.body.appendChild(input);
+                
+                // إرسال النموذج
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '';
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
+            </script>
+            """, unsafe_allow_html=True)
+            
+            # استخدام st.session_state لتخزين التقييم مؤقتاً
+            if st.session_state.temp_rating > 0:
+                if add_rating(st.session_state.temp_rating, comment):
+                    st.success(t("rating_success"))
+                    st.balloons()
+                    st.session_state.temp_rating = 0
+                    st.rerun()
+                else:
+                    st.error(f"❌ {t('error')}")
+            else:
+                st.warning(f"⚠️ {t('select_rating')}")
+    
+    with col_reset:
+        if st.button(f"**🔄 {t('reset') if st.session_state.lang == 'ar' else 'Reset'}**", use_container_width=True):
+            st.markdown("""
+            <script>
+            sessionStorage.removeItem('selectedRating');
+            for (let i = 1; i <= 5; i++) {
+                const star = document.getElementById('star' + i);
+                star.innerHTML = '☆';
+                star.classList.remove('active');
+            }
+            document.getElementById('rating-text').innerHTML = 'اختر عدد النجوم';
+            </script>
+            """, unsafe_allow_html=True)
+            st.session_state.temp_rating = 0
+            st.rerun()
+    
+    # عرض آخر التقييمات
+    if not st.session_state.ratings_df.empty:
+        st.markdown("---")
+        st.subheader(f"📝 {t('latest_ratings')}")
+        
+        latest_ratings = st.session_state.ratings_df.tail(5).iloc[::-1]
+        for idx, rating in latest_ratings.iterrows():
+            stars_display = "⭐" * int(rating["rating"]) + "☆" * (5 - int(rating["rating"]))
+            comment_display = rating["comment"] if pd.notna(rating["comment"]) and str(rating["comment"]).strip() else ""
+            
+            st.markdown(f"""
+            <div class="notification" style="margin: 10px 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 1.2rem; color: #ffd700;">{stars_display}</span>
+                    <small style="opacity: 0.7; color: #666;">{rating['timestamp'].split()[0]}</small>
+                </div>
+                {f"<p style='margin: 10px 0 0 0; color: #666; font-style: italic;'>{comment_display}</p>" if comment_display else ""}
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.info(f"ℹ️ {t('no_ratings_yet')}")
 
 # ===== الواجهة الرئيسية المحسنة =====
 def main():
@@ -1496,7 +1954,7 @@ def main():
         st.markdown(f"""
         <div class="metric-card">
             <h3>{t('attendance_rate') if st.session_state.lang == 'ar' else 'Attendance Rate'}</h3>
-            <h1 style="color: #10b981; margin: 0.5rem 0;">{stats['percentage']:.1f}%</h1>
+            <h1 style="color: #2a9d8f; margin: 0.5rem 0;">{stats['percentage']:.1f}%</h1>
             <p style="opacity: 0.8; margin: 0;">{stats['coming']}/{stats['total']} {t('student') if st.session_state.lang == 'ar' else 'students'}</p>
         </div>
         """, unsafe_allow_html=True)
@@ -1558,23 +2016,17 @@ def main():
     # الفوتر المحسن
     st.markdown("---")
     st.markdown(f"""
-    <div style='
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-        padding: 2rem;
-        border-radius: 15px;
-        text-align: center;
-        margin-top: 3rem;
-    '>
-        <h4 style="color: #667eea; margin-bottom: 0.5rem;">🚍 {t('footer')}</h4>
+    <div class="footer">
+        <h4 style="color: {primary_color}; margin-bottom: 0.5rem;">🚍 {t('footer')}</h4>
         <p style="opacity: 0.8; margin-bottom: 0.5rem;">{t('rights')}</p>
         <p style="font-size: 0.9rem; opacity: 0.7; line-height: 1.5;">{t('team')}</p>
         <div style="margin-top: 1rem;">
-            <small>📧 {t('contact_developer')}: <a href="mailto:eyadmustafaali99@gmail.com" style="color: #667eea;">eyadmustafaali99@gmail.com</a></small>
+            <small>📧 {t('contact_developer')}: <a href="mailto:eyadmustafaali99@gmail.com" style="color: {primary_color};">eyadmustafaali99@gmail.com</a></small>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# ===== صفحات التطبيق المحسنة =====
+# ===== صفحات التطبيق المحسنة (مع الحفاظ على الوظائف السابقة) =====
 def show_student_page():
     """صفحة الطالب"""
     col1, col2 = st.columns([2, 1])
@@ -1582,11 +2034,12 @@ def show_student_page():
     with col1:
         st.markdown(f"""
         <div style='
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, {primary_color}, {secondary_color});
             color: white;
             padding: 2rem;
             border-radius: 15px;
             margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 180, 216, 0.2);
         '>
             <h2>🎓 {t('student_title')}</h2>
             <p>{t('student_desc')}</p>
@@ -1676,12 +2129,13 @@ def show_student_page():
     with col2:
         st.markdown(f"""
         <div style='
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: linear-gradient(135deg, {accent_color}, {secondary_color});
             color: white;
             padding: 1.5rem;
             border-radius: 15px;
             margin-bottom: 1rem;
             text-align: center;
+            box-shadow: 0 4px 6px rgba(42, 157, 143, 0.2);
         '>
             <h3>📊 {t('stats_title')}</h3>
         </div>
@@ -1692,21 +2146,21 @@ def show_student_page():
         st.markdown(f"""
         <div class="metric-card">
             <h4>👥 {t('total_registered')}</h4>
-            <h2 style="color: #667eea;">{stats['total']}</h2>
+            <h2 style="color: {primary_color};">{stats['total']}</h2>
         </div>
         """, unsafe_allow_html=True)
         
         st.markdown(f"""
         <div class="metric-card">
             <h4>✅ {t('expected_attendance')}</h4>
-            <h2 style="color: #10b981;">{stats['coming']}</h2>
+            <h2 style="color: {success_color};">{stats['coming']}</h2>
         </div>
         """, unsafe_allow_html=True)
         
         st.markdown(f"""
         <div class="metric-card">
             <h4>📈 {t('attendance_rate')}</h4>
-            <h2 style="color: #f59e0b;">{stats['percentage']:.1f}%</h2>
+            <h2 style="color: {warning_color};">{stats['percentage']:.1f}%</h2>
         </div>
         """, unsafe_allow_html=True)
         
@@ -1714,34 +2168,29 @@ def show_student_page():
         if st.session_state.notifications:
             st.markdown("""
             <div style='
-                background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+                background: linear-gradient(135deg, #e9c46a, #f4a261);
                 color: white;
                 padding: 1rem;
                 border-radius: 15px;
                 margin-top: 1rem;
+                box-shadow: 0 4px 6px rgba(233, 196, 106, 0.2);
             '>
-                <h4>🔔 {t('notifications') if st.session_state.lang == 'ar' else 'Latest Notifications'}</h4>
+                <h4>🔔 {t('latest_ratings') if st.session_state.lang == 'ar' else 'Latest Notifications'}</h4>
             </div>
             """, unsafe_allow_html=True)
             
             for notification in st.session_state.notifications[-3:]:
                 st.markdown(f"""
-                <div style='
-                    background: rgba(255,255,255,0.1);
-                    padding: 0.75rem;
-                    border-radius: 10px;
-                    margin: 0.5rem 0;
-                    border-left: 3px solid #f59e0b;
-                '>
+                <div class="notification">
                     <div style="display: flex; justify-content: space-between;">
                         <span>{notification['message']}</span>
-                        <small>{notification['time']}</small>
+                        <small style="opacity: 0.7;">{notification['time']}</small>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
 def show_driver_page():
-    """صفحة السائق"""
+    """صفحة السائق (مع الحفاظ على الوظائف السابقة)"""
     if not st.session_state.driver_logged_in:
         # واجهة تسجيل الدخول
         col1, col2 = st.columns([1, 1])
@@ -1749,11 +2198,12 @@ def show_driver_page():
         with col1:
             st.markdown(f"""
             <div style='
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, {primary_color}, {secondary_color});
                 color: white;
                 padding: 2rem;
                 border-radius: 15px;
                 margin-bottom: 2rem;
+                box-shadow: 0 4px 6px rgba(0, 180, 216, 0.2);
             '>
                 <h2>🚌 {t('driver_title')}</h2>
                 <p>{t('driver_login')}</p>
@@ -1783,9 +2233,9 @@ def show_driver_page():
                     st.error(t("login_error"))
         
         with col2:
-            st.markdown("""
+            st.markdown(f"""
             <div style='
-                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                background: linear-gradient(135deg, {accent_color}, {secondary_color});
                 color: white;
                 padding: 2rem;
                 border-radius: 15px;
@@ -1794,10 +2244,11 @@ def show_driver_page():
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
+                box-shadow: 0 4px 6px rgba(42, 157, 143, 0.2);
             '>
                 <h1>🚍</h1>
-                <h3>Bus Tracking System</h3>
-                <p>Login to access driver dashboard</p>
+                <h3>{t('driver_title')}</h3>
+                <p>{t('driver_login')}</p>
             </div>
             """, unsafe_allow_html=True)
     
@@ -1808,11 +2259,12 @@ def show_driver_page():
         with col1:
             st.markdown(f"""
             <div style='
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, {primary_color}, {secondary_color});
                 color: white;
                 padding: 1.5rem;
                 border-radius: 15px;
                 margin-bottom: 1rem;
+                box-shadow: 0 4px 6px rgba(0, 180, 216, 0.2);
             '>
                 <h2>🚌 {t('bus')} {st.session_state.current_bus}</h2>
                 <p>{t('driver_title')}</p>
@@ -1842,7 +2294,7 @@ def show_driver_page():
             st.markdown(f"""
             <div class="metric-card">
                 <h4>👥 {t('total_students')}</h4>
-                <h2 style="color: #667eea;">{total_count}</h2>
+                <h2 style="color: {primary_color};">{total_count}</h2>
             </div>
             """, unsafe_allow_html=True)
         
@@ -1850,7 +2302,7 @@ def show_driver_page():
             st.markdown(f"""
             <div class="metric-card">
                 <h4>✅ {t('confirmed_attendance')}</h4>
-                <h2 style="color: #10b981;">{coming_count}</h2>
+                <h2 style="color: {success_color};">{coming_count}</h2>
             </div>
             """, unsafe_allow_html=True)
         
@@ -1858,7 +2310,7 @@ def show_driver_page():
             st.markdown(f"""
             <div class="metric-card">
                 <h4>📈 {t('attendance_percentage')}</h4>
-                <h2 style="color: #f59e0b;">{percentage:.1f}%</h2>
+                <h2 style="color: {warning_color};">{percentage:.1f}%</h2>
             </div>
             """, unsafe_allow_html=True)
         
@@ -1933,17 +2385,18 @@ def show_driver_page():
             st.info(f"**ℹ️ {t('no_students')}**")
 
 def show_parents_page():
-    """صفحة أولياء الأمور - مع إدارة الحالات الصحية"""
+    """صفحة أولياء الأمور (مع الحفاظ على الوظائف السابقة)"""
     col1, col2 = st.columns([2, 1])
     
     with col1:
         st.markdown(f"""
         <div style='
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, {primary_color}, {secondary_color});
             color: white;
             padding: 2rem;
             border-radius: 15px;
             margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 180, 216, 0.2);
         '>
             <h2>👨‍👩‍👧 {t('parents_title')}</h2>
             <p>{t('track_student')}</p>
@@ -2007,7 +2460,7 @@ def show_parents_page():
                         latest_record = today_data.iloc[-1]
                         st.info(f"**⏰ {t('registration_time')}: {latest_record['time']}**")
                 
-                # ===== قسم إدارة الحالات الصحية =====
+                # قسم إدارة الحالات الصحية
                 st.markdown("---")
                 st.markdown(f"### 🏥 {t('health_management')}", unsafe_allow_html=True)
                 
@@ -2026,7 +2479,7 @@ def show_parents_page():
                                 padding: 10px;
                                 border-radius: 10px;
                                 margin: 5px 0;
-                                border-right: 5px solid #667eea;
+                                border-right: 5px solid {primary_color};
                             ">
                                 <strong>{condition_icon} {condition['type']}:</strong> {condition['description']}
                                 <br><small>📅 {t('added_date') if st.session_state.lang == 'ar' else 'Added'}: {condition['added_date']}</small>
@@ -2074,12 +2527,13 @@ def show_parents_page():
     with col2:
         st.markdown(f"""
         <div style='
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: linear-gradient(135deg, {accent_color}, {secondary_color});
             color: white;
             padding: 1.5rem;
             border-radius: 15px;
             margin-bottom: 1rem;
             text-align: center;
+            box-shadow: 0 4px 6px rgba(42, 157, 143, 0.2);
         '>
             <h3>🚌 {t('bus_info')}</h3>
         </div>
@@ -2123,7 +2577,7 @@ def show_parents_page():
             """, unsafe_allow_html=True)
 
 def show_admin_page():
-    """صفحة الإدارة"""
+    """صفحة الإدارة (مع الحفاظ على الوظائف السابقة)"""
     if not st.session_state.admin_logged_in:
         # واجهة تسجيل الدخول
         col1, col2 = st.columns([1, 1])
@@ -2131,11 +2585,12 @@ def show_admin_page():
         with col1:
             st.markdown(f"""
             <div style='
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, {primary_color}, {secondary_color});
                 color: white;
                 padding: 2rem;
                 border-radius: 15px;
                 margin-bottom: 2rem;
+                box-shadow: 0 4px 6px rgba(0, 180, 216, 0.2);
             '>
                 <h2>🏫 {t('admin_title')}</h2>
                 <p>{t('admin_login')}</p>
@@ -2158,9 +2613,9 @@ def show_admin_page():
                     st.error(t("login_error"))
         
         with col2:
-            st.markdown("""
+            st.markdown(f"""
             <div style='
-                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                background: linear-gradient(135deg, {accent_color}, {secondary_color});
                 color: white;
                 padding: 2rem;
                 border-radius: 15px;
@@ -2169,10 +2624,11 @@ def show_admin_page():
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
+                box-shadow: 0 4px 6px rgba(42, 157, 143, 0.2);
             '>
                 <h1>🔒</h1>
-                <h3>Admin Dashboard</h3>
-                <p>Login to access admin controls</p>
+                <h3>{t('admin_title')}</h3>
+                <p>{t('admin_login')}</p>
             </div>
             """, unsafe_allow_html=True)
     
@@ -2183,11 +2639,12 @@ def show_admin_page():
         with col1:
             st.markdown(f"""
             <div style='
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, {primary_color}, {secondary_color});
                 color: white;
                 padding: 1.5rem;
                 border-radius: 15px;
                 margin-bottom: 1rem;
+                box-shadow: 0 4px 6px rgba(0, 180, 216, 0.2);
             '>
                 <h2>🏫 {t('admin_title')}</h2>
                 <p>{t('system_stats')}</p>
@@ -2216,7 +2673,7 @@ def show_admin_page():
             st.markdown(f"""
             <div class="metric-card">
                 <h4>👥 {t('students_count')}</h4>
-                <h2 style="color: #667eea;">{total_students}</h2>
+                <h2 style="color: {primary_color};">{total_students}</h2>
             </div>
             """, unsafe_allow_html=True)
         
@@ -2224,7 +2681,7 @@ def show_admin_page():
             st.markdown(f"""
             <div class="metric-card">
                 <h4>📝 {t('attendance_records')}</h4>
-                <h2 style="color: #10b981;">{total_attendance}</h2>
+                <h2 style="color: {success_color};">{total_attendance}</h2>
             </div>
             """, unsafe_allow_html=True)
         
@@ -2233,7 +2690,7 @@ def show_admin_page():
             st.markdown(f"""
             <div class="metric-card">
                 <h4>⭐ {t('rating_system')}</h4>
-                <h2 style="color: #f59e0b;">{rating_count}</h2>
+                <h2 style="color: {warning_color};">{rating_count}</h2>
                 <p>{t('average_rating')}: {avg_rating:.1f}/5</p>
             </div>
             """, unsafe_allow_html=True)
@@ -2446,11 +2903,12 @@ def show_about_page():
     """صفحة حول النظام"""
     st.markdown(f"""
     <div style='
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, {primary_color}, {secondary_color});
         color: white;
         padding: 2rem;
         border-radius: 15px;
         margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 180, 216, 0.2);
     '>
         <h2>ℹ️ {t('about_title')}</h2>
         <p>{t('about_description')}</p>
@@ -2481,7 +2939,7 @@ def show_about_page():
                     <div style="display: flex; align-items: start; gap: 1rem;">
                         <div style="font-size: 2.5rem;">{icon}</div>
                         <div>
-                            <h4 style="margin: 0 0 0.5rem 0; color: #667eea;">{title}</h4>
+                            <h4 style="margin: 0 0 0.5rem 0; color: {primary_color};">{title}</h4>
                             <p style="margin: 0; opacity: 0.8; line-height: 1.5;">{desc}</p>
                         </div>
                     </div>
@@ -2497,7 +2955,6 @@ def show_about_page():
             
             team_members = [
                 ("🛠️", t("developer"), "إياد مصطفى"),
-                ("🎨", t("designer"), "ايمن جلال"),
                 ("👨‍🏫", t("supervisor") if st.session_state.lang == 'ar' else "Supervisor", t("supervisor") if st.session_state.lang == 'ar' else "Environmental Club")
             ]
             
@@ -2506,7 +2963,7 @@ def show_about_page():
                 <div class="metric-card">
                     <div style="text-align: center;">
                         <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">{icon}</div>
-                        <h4 style="margin: 0; color: #667eea;">{role}</h4>
+                        <h4 style="margin: 0; color: {primary_color};">{role}</h4>
                         <p style="margin: 0.5rem 0 0 0; font-weight: bold; font-size: 1.1rem;">{name}</p>
                     </div>
                 </div>
@@ -2534,7 +2991,7 @@ def show_about_page():
             """, unsafe_allow_html=True)
     
     with tab3:
-        # نظام التقييم - تم إصلاحه
+        # نظام التقييم المحسن
         show_rating_system_tab()
     
     with tab4:
@@ -2548,103 +3005,6 @@ def show_about_page():
         with col2:
             st.subheader(f"📧 {t('contact_developer')}")
             contact_developer()
-
-def show_rating_system_tab():
-    """نظام التقييم في تبويب منفصل - تم إصلاحه"""
-    st.subheader(f"⭐ {t('rating_system')}")
-    
-    # إحصائيات التقييمات
-    avg_rating, total_ratings = get_average_rating()
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <h4>📊 {t('average_rating')}</h4>
-            <h1 style="color: #f59e0b; text-align: center;">{avg_rating:.1f}/5</h1>
-            <div style="text-align: center; font-size: 1.5rem; margin: 0.5rem 0;">
-                {"⭐" * int(avg_rating) if avg_rating > 0 else ""}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <h4>📈 {t('total_ratings')}</h4>
-            <h2 style="color: #667eea; text-align: center;">{total_ratings}</h2>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # نموذج التقييم
-    st.markdown("---")
-    st.subheader(f"💬 {t('rate_app')}")
-    
-    # استخدام select_slider بدلاً من slider لتجنب المشاكل
-    rating_options = [1, 2, 3, 4, 5]
-    rating_labels = {
-        1: f"⭐ {t('poor')}",
-        2: f"⭐⭐ {t('fair')}",
-        3: f"⭐⭐⭐ {t('good')}",
-        4: f"⭐⭐⭐⭐ {t('very_good')}",
-        5: f"⭐⭐⭐⭐⭐ {t('excellent')}"
-    }
-    
-    selected_rating = st.select_slider(
-        f"**{t('your_rating')}**",
-        options=rating_options,
-        value=5,
-        format_func=lambda x: rating_labels[x]
-    )
-    
-    # عرض النجوم
-    stars = "⭐" * selected_rating + "☆" * (5 - selected_rating)
-    st.markdown(f"**{t('select_rating')}:** {stars}")
-    
-    # التعليق
-    comment = st.text_area(
-        f"**{t('your_comment')}**",
-        placeholder=t("your_comment"),
-        height=100,
-        key="rating_comment_about"
-    )
-    
-    col_submit, col_space = st.columns([1, 3])
-    with col_submit:
-        if st.button(f"**🚀 {t('submit_rating')}**", use_container_width=True, key="submit_rating_about"):
-            if add_rating(selected_rating, comment):
-                st.success(t("rating_success"))
-                st.balloons()
-                st.rerun()
-            else:
-                st.error(f"❌ {t('error')}")
-    
-    # عرض آخر التقييمات
-    if not st.session_state.ratings_df.empty:
-        st.markdown("---")
-        st.subheader(f"📝 {t('latest_ratings')}")
-        latest_ratings = st.session_state.ratings_df.tail(5).iloc[::-1]
-        for _, rating in latest_ratings.iterrows():
-            stars_display = "⭐" * int(rating["rating"]) + "☆" * (5 - int(rating["rating"]))
-            comment_display = rating["comment"] if pd.notna(rating["comment"]) and str(rating["comment"]).strip() else ""
-            st.markdown(f"""
-            <div style='
-                background: rgba(255,255,255,0.1);
-                padding: 1rem;
-                border-radius: 10px;
-                margin: 0.5rem 0;
-                border-left: 4px solid #f59e0b;
-            '>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 1.1rem;">{stars_display}</span>
-                    <small style="opacity: 0.7;">{rating['timestamp'].split()[0]}</small>
-                </div>
-                {f"<p style='margin: 0.5rem 0 0 0; opacity: 0.8; font-style: italic;'>{comment_display}</p>" if comment_display else ""}
-            </div>
-            """, unsafe_allow_html=True)
-    else:
-        st.info(t("no_ratings_yet"))
 
 # تشغيل التطبيق
 if __name__ == "__main__":
