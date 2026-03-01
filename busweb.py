@@ -68,6 +68,14 @@ if "student_health_conditions" not in st.session_state:
 if "temp_rating" not in st.session_state:
     st.session_state.temp_rating = 0
 
+# ===== تعريف الألوان الثابتة (تم إضافتها هنا) =====
+primary_color = "#00b4d8"  # أزرق فاتح
+secondary_color = "#0077b6"  # أزرق غامق
+accent_color = "#2a9d8f"  # أخضر مزرق
+warning_color = "#e9c46a"  # أصفر
+danger_color = "#e76f51"  # برتقالي محمر
+success_color = "#2a9d8f"  # أخضر
+
 # ===== وظائف حفظ البيانات =====
 def save_data():
     """حفظ جميع البيانات في الملفات"""
@@ -954,7 +962,7 @@ def smart_ai_assistant():
             with st.chat_message("assistant"):
                 st.markdown(f"""
                 <div style='
-                    background: linear-gradient(135deg, #00b4d8, #0077b6);
+                    background: linear-gradient(135deg, {primary_color}, {secondary_color});
                     color: white;
                     padding: 1rem;
                     border-radius: 15px;
@@ -969,7 +977,7 @@ def smart_ai_assistant():
             with st.chat_message("user"):
                 st.markdown(f"""
                 <div style='
-                    background: linear-gradient(135deg, #2a9d8f, #264653);
+                    background: linear-gradient(135deg, {accent_color}, {secondary_color});
                     color: white;
                     padding: 1rem;
                     border-radius: 15px;
@@ -1119,7 +1127,7 @@ def contact_developer():
     with st.form("contact_form"):
         st.markdown(f"""
         <div style='
-            background: linear-gradient(135deg, #00b4d8, #0077b6);
+            background: linear-gradient(135deg, {primary_color}, {secondary_color});
             color: white;
             padding: 1.5rem;
             border-radius: 15px;
@@ -1191,14 +1199,6 @@ def contact_developer():
 # ===== التصميم المحسن والمحدث =====
 def apply_enhanced_styles():
     """تطبيق التصميم المحسن بالألوان الجديدة"""
-    
-    # ألوان جديدة ومحسنة
-    primary_color = "#00b4d8"  # أزرق فاتح
-    secondary_color = "#0077b6"  # أزرق غامق
-    accent_color = "#2a9d8f"  # أخضر مزرق
-    warning_color = "#e9c46a"  # أصفر
-    danger_color = "#e76f51"  # برتقالي محمر
-    success_color = "#2a9d8f"  # أخضر
     
     if st.session_state.theme == "dark":
         st.markdown(f"""
@@ -1843,7 +1843,7 @@ def show_rating_system_tab():
             '{t("very_good")}',
             '{t("excellent")}'
         ];
-        ratingText.innerHTML = `${{ratingMessages[rating-1]}} ({{rating}}/5)`;
+        ratingText.innerHTML = `${{ratingMessages[rating-1]}} (${{rating}}/5)`;
         
         // تخزين التقييم في sessionStorage
         sessionStorage.setItem('selectedRating', rating);
@@ -1954,7 +1954,7 @@ def main():
         st.markdown(f"""
         <div class="metric-card">
             <h3>{t('attendance_rate') if st.session_state.lang == 'ar' else 'Attendance Rate'}</h3>
-            <h1 style="color: #2a9d8f; margin: 0.5rem 0;">{stats['percentage']:.1f}%</h1>
+            <h1 style="color: {success_color}; margin: 0.5rem 0;">{stats['percentage']:.1f}%</h1>
             <p style="opacity: 0.8; margin: 0;">{stats['coming']}/{stats['total']} {t('student') if st.session_state.lang == 'ar' else 'students'}</p>
         </div>
         """, unsafe_allow_html=True)
